@@ -1,5 +1,7 @@
 /*
 TEAM SATOSHI'S
+Project: Airlines Reservation System
+
 Ulaş Erdoğan - 040190230
 Serdar Yaşar - 010190077
 */
