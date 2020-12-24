@@ -1,3 +1,9 @@
+/*
+TEAM SATOSHI'S
+Ulaş Erdoğan - 040190230
+Serdar Yaşar - 010190077
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <conio.h>
