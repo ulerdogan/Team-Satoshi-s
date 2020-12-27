@@ -7,7 +7,9 @@ Serdar Yaşar - 010190077
 */
 
 #include <stdio.h>
-#include <conio.h>             // included this library to take getch() function to keep console window opened at the end of the program
+#include <conio.h> // included this library to take getch() function to keep console window opened at the end of the program
+#include <string.h> // included this library to use string functions
+
 #define AIRPORT_NAME_LENGTH 20 // the maximum length of the airport names' strings are being controlled by "AIRPORT_NAME_LENGTH" macro
 #define PASSWORD_LENGTH 20     // the maximum length of the adminstrator passwords is being controlled by "PASSWORD_LENGTH" macro
 
@@ -50,6 +52,8 @@ int main()
         }
         else
         {
+            printf("MENU");
+            break;
         }
     }
 
@@ -66,13 +70,12 @@ int isAdminSignedUp()
     if (fopen("password.txt", "r") == NULL) // True IS TEMPORARY
     {
         // if there are not a password, return 0 and express that admin must be signed up
-        return 1;
+        return 0;
     }
     else
     {
         // if there are a password, return 1 and express that there is an admin
-        ;
-        return 0;
+        return 1;
     }
 }
 
