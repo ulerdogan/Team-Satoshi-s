@@ -7,8 +7,8 @@ Serdar Yaşar - 010190077
 */
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <conio.h>
+#include <conio.h> // included this library to take getch() function to keep console window opened at the end of the program
+#define AIRPORT_NAME_LENGTH 20
 
 // the function prototypes
 
@@ -21,11 +21,12 @@ void createPassword();
 
 // a structure of the fligths that recorded to the system
 struct Flight {
+    // "flight code, departure airport, destination airport, time of departure, time of destination and passenger capacity" records
     int flightCode;
-    char depAirport[20];
-    char destAirport[20];
-    char timeOfDep[5];
-    char timeOfDest[5];
+    char depAirport[AIRPORT_NAME_LENGTH]; // the maximum length of the airport names' strings are being controlled by "AIRPORT_NAME_LENGTH" macro
+    char destAirport[AIRPORT_NAME_LENGTH]; // the maximum length of the airport names' strings are being controlled by "AIRPORT_NAME_LENGTH" macro
+    char timeOfDep[5]; // "HH.MM" format
+    char timeOfDest[5]; // "HH.MM" format
     int passengerCapacity;
 };
 
@@ -58,7 +59,7 @@ int main() {
 int isAdminSignedUp() {
     // check the file database and find a adminstrator password
     ;
-    if( ) {
+    if(;) {
         // if there are a password, return 1 and express that there is an admin
         return 1;
     } else {
@@ -70,7 +71,7 @@ int isAdminSignedUp() {
 // a function that provides the sign up for the first time and makes the password changes
 void createPassword(){
     // check if there are record on the password database, clean it
-    if( ){
+    if(;){
         ;
     }
 
