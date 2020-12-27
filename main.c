@@ -25,6 +25,12 @@ enum boolean
 int isAdminSignedUp();
 // provide the sign up for the first time and make the password changes
 void createPassword();
+// function that shows the main menu
+int showMainMenu();
+// menu switches designing function
+void design();
+// function that shows the admin menu
+int showAdminMenu();
 
 // structs that we used in our program
 
@@ -46,14 +52,61 @@ int main()
     while (True)
     {
         // keep the program going by admin signing up menu or by the main menu according to sign up status (use password record as control)
-        if (isAdminSignedUp == 0)
+        if (isAdminSignedUp() == 0)
         {
             createPassword(); // the adminstrators sign up by creating password
         }
         else
         {
-            printf("MENU");
-            break;
+            // pass to main menu if the adminstrator has signed up
+            switch(showMainMenu())
+            {
+                // adminstrator login option
+                case 1:
+                    // show options in admin menu
+                    switch (showAdminMenu())
+                    {
+                        // adding a new flight
+                        case 1:
+                            break;
+                        // editing current flights
+                        case 2:
+                            break;
+                        // deleting flights
+                        case 3:
+                            break;
+                        // listing current flights
+                        case 4:
+                            break;
+                        // listing bookings   
+                        case 5:
+                            break;
+                        // changing password option
+                        case 6:
+                            createPassword();
+                            break;
+                        // returning to main menu option
+                        case 0:
+                            break;                      
+                        // default option for false inputs                                                                             
+                        default:
+                            printf("\n!!!!! An error occurred");
+                    }
+                    break;
+                // passenger menu option
+                case 2:
+                    printf("passenger\n");
+                    break;
+                // exiting from the program option
+                case 0:
+                    printf("\nThe program has successfully closed.\nSEE YOU LATER!\n");
+
+                    getch(); // end of the program statement and provide that the program doesn't end without user permission
+                    return 0;
+                // default option for false inputs
+                default:
+                    printf("\n!!!!! An error occurred");
+            }
         }
     }
 
@@ -62,6 +115,13 @@ int main()
 }
 
 // functions
+
+// a function that makes menu switch designs
+void design(){
+    printf("\n\n||||||||||||||||||||||||-------------||||||||||||||||||||||||\n");
+    printf("|||||||||||||||||| << SATOSHI'S AIRPORT >> ||||||||||||||||||\n");
+    printf("||||||||||||||||||||||||-------------||||||||||||||||||||||||\n\n");
+}
 
 // a function that checks if adminstrator of the system signed up
 int isAdminSignedUp()
@@ -82,12 +142,13 @@ int isAdminSignedUp()
 // a function that provides the sign up for the first time and makes the password changes
 void createPassword()
 {
-    FILE *pwPtr;                    // pointer for password file database
+    FILE *pwPtr; // pointer for password file database
     char password[PASSWORD_LENGTH]; // a string that keeps new password
     // check if are there record on the password database
     //if there are not a password record, create password and provide sign up; else verify the old password and change it
     if (fopen("password.txt", "r") == NULL)
     {
+        design();
         printf("Please enter your new password (less than 20 characters): ");
         scanf("%s", password);
         pwPtr = fopen("password.txt", "w");
@@ -96,6 +157,7 @@ void createPassword()
     // section to verify old password and change it
     else
     {
+        design();
         char oldPassword[3][PASSWORD_LENGTH]; // a string array to verify be used in verifing passwords
         printf("Please, verify your password: ");
         scanf("%s", oldPassword[1]); // 1 indexed element is for checking old password
@@ -107,6 +169,7 @@ void createPassword()
 
         if (!strcmp(oldPassword[1], oldPassword[2]) && !strcmp(oldPassword[0], oldPassword[1])) // && !strcmp(oldPassword[0], DOSYADAKİ ŞİFRE) FILE OKUYUP KARŞILAŞTIRMA ÖZELLİĞİ EKLENECEK
         {
+            design();
             printf("Please enter your new password (less than 20 characters): ");
             scanf("%s", password);
             pwPtr = fopen("password.txt", "w");
@@ -114,8 +177,63 @@ void createPassword()
         }
         else
         {
+            design();
             printf("The passwords that you entered didn't match...");
         }
     }
     fclose(pwPtr);
+}
+
+// a function to show the main menu
+int showMainMenu()
+{
+    design();
+
+    int choice; // variable that will be returned as choice
+    printf("1. Enter as adminstrator\n");
+    printf("2. Enter as passenger\n");
+    printf("0. Exit from the program\n");
+    printf("\nPlease make your login option: ");
+    scanf("%d", &choice);
+
+    return choice;
+}
+
+// a function to open adminstrator menu if user choose to be logined as adminstrator
+int showAdminMenu()
+{
+    design();
+
+    FILE *pwPtr; // pointer for password file database
+    char password[2][PASSWORD_LENGTH]; // a string array that keeps passwords entered and signupped to match to login 
+    pwPtr = fopen("password.txt", "r");  // open file to read password from file database
+    fscanf(pwPtr, "%s", password[0]); // 0 indexed element is for getting and checking password from file database
+
+    printf("Please enter the admin password: ");
+    scanf("%s", password[1]); // 1 indexed element is for getting password from user and compare
+
+    // comparing the passwords and if the input is correct, continue to the program
+    if(!strcmp(password[0], password[1]))
+    {
+        design();
+
+        int choice;
+        printf("1. Add a new flight\n");
+        printf("2. Edit available flights\n");
+        printf("3. Delete a flight\n");
+        printf("4. List all available flights\n");
+        printf("5. List all bookings\n");
+        printf("6. Change your password\n");
+        printf("0. Return to the main menu\n");
+        printf("\nPlease make your menu option: ");
+        scanf("%d", &choice);
+        return choice;
+
+    } else
+    {
+        printf("\nThe password you entered is not correct!");
+        return 0; // same return with 6th option in the adminstrator menu: return to the main menu
+    }
+    
+
 }
