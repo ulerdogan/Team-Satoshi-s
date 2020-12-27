@@ -12,17 +12,32 @@ Serdar Yaşar - 010190077
 
 // the function prototypes
 
-//check if adminstrator of the system signed up
-int isAdminSignedUp(); 
+// check if adminstrator of the system signed up
+int isAdminSignedUp();
+// provide the sign up for the first time and make the password changes
+void createPassword();
+
+// structs that we used in our program
+
+// a structure of the fligths that recorded to the system
+struct Flight {
+    int flightCode;
+    char depAirport[20];
+    char destAirport[20];
+    char timeOfDep[5];
+    char timeOfDest[5];
+    int passengerCapacity;
+};
 
 int main() {
 
     // the loop that keeps the program running
     while (1) {
 
-        // keep the program going by admin signing up menu or by the main menu according to sign up status
+        // keep the program going by admin signing up menu or by the main menu according to sign up status (use password record as control)
         if (isAdminSignedUp == 0) {
-
+            // the adminstrators sign up by creating password
+            createPassword();
         } else {
 
         }
@@ -37,16 +52,29 @@ int main() {
     return 0;
 }
 
+// our functions
+
 // a function that checks if adminstrator of the system signed up
 int isAdminSignedUp() {
     // check the file database and find a adminstrator password
     ;
-    if() {
+    if( ) {
         // if there are a password, return 1 and express that there is an admin
         return 1;
     } else {
         // if there are not a password, return 0 and express that admin must be signed up
         return 0;
     }
+}
 
+// a function that provides the sign up for the first time and makes the password changes
+void createPassword(){
+    // check if there are record on the password database, clean it
+    if( ){
+        ;
     }
+
+    // record new password
+    ;
+
+}
