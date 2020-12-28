@@ -9,9 +9,11 @@ Serdar Yaşar - 010190077
 #include <stdio.h>
 #include <conio.h> // included this library to take getch() function to keep console window opened at the end of the program
 #include <string.h> // included this library to use string functions
+#include"design.h"
 
 #define AIRPORT_NAME_LENGTH 20 // the maximum length of the airport names' strings are being controlled by "AIRPORT_NAME_LENGTH" macro
-#define PASSWORD_LENGTH 20     // the maximum length of the adminstrator passwords is being controlled by "PASSWORD_LENGTH" macro
+#define PASSWORD_LENGTH 20 // the maximum length of the adminstrator passwords is being controlled by "PASSWORD_LENGTH" macro
+#define NAME_LENGTH 30 // the maximum length of the name is being controlled by "NAME_LENGTH" macro
 
 enum boolean
 {
@@ -35,16 +37,26 @@ int showAdminMenu();
 // structs that we used in our program
 
 // a structure of the fligths that recorded to the system
-typedef struct Flight
+typedef struct _Flight
 {
     // "flight code, departure airport, destination airport, time of departure, time of destination and passenger capacity" records
-    unsigned short int flightCode;         // between 11111 - 99999
-    char depAirport[AIRPORT_NAME_LENGTH];  // the maximum length of the airport names' strings are being controlled by "AIRPORT_NAME_LENGTH" macro
+    unsigned short int flightCode; // between 1111 - 9999
+    char depAirport[AIRPORT_NAME_LENGTH]; // the maximum length of the airport names' strings are being controlled by "AIRPORT_NAME_LENGTH" macro
     char destAirport[AIRPORT_NAME_LENGTH]; // the maximum length of the airport names' strings are being controlled by "AIRPORT_NAME_LENGTH" macro
-    char timeOfDep[5];                     // "HH.MM" format : time of departure
-    char timeOfDest[5];                    // "HH.MM" format : time of destination
-    unsigned short int passengerCapacity;
+    char timeOfDep[5]; // "HH.MM" format : time of departure
+    char timeOfDest[5]; // "HH.MM" format : time of destination
+    unsigned short int passengerCapacity; // passenger capacities of the planes (%hu)
 } Flight;
+
+// a structuro of the bookings that passengers recorded
+typedef struct _Booking
+{
+    char name[NAME_LENGTH]; // a string array to keep passengers names
+    unsigned long long personalId; // a variable to keep the passengers personal ID (%llu)
+    unsigned short int seatNumber; // a variable to keep seat data of booking (%hu)
+    unsigned short int bookingId; // a variable to keep assigned booking ID to passengers (%hu)
+    Flight flightInfo; // flight data of the bookings
+} Booking;
 
 int main()
 {

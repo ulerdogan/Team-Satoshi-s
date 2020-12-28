@@ -15,7 +15,7 @@ In order to book a flight, the passenger will provide destination airport and de
 The passenger will select a flight from the list and then will be presented a screen to enter her/his name, id number, and enter seat number from a list of available seat numbers for that particular flight in order. The passenger will enter the required information one by one to finish the booking.
 The application will assign a booking id for the booked flight and will display it. The cancel booking menu will ask for a booking id and will delete it if it can find it in the database. If the item cannot be found, the passenger will be prompted with a message.
 The list bookings menu will ask for passenger name and id number and will display all the bookings for that particular passenger with their ids and flight information as above.
-
+***
 ### How can i run it?
 The **main.c** file is the source code of the program. You can compile it on your own computer or you can run **main.exe** on Windows computers.
 **password.txt** file is the file database to record adminstrator password to reach adminstrator panel. You can use pre-setted password *1773* or delete this file and create this file database at the beginning of the program.
