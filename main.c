@@ -27,7 +27,7 @@ int isAdminSignedUp();
 // provide the sign up for the first time and make the password changes
 void createPassword();
 // function that shows the main menu
-int showMainMenu();
+void showMainMenu();
 // menu switches designing function
 void design();
 // function that provides log in by password check
@@ -76,58 +76,7 @@ int main()
         }
         else
         {
-            // a variable to keep session status: 0 -> admin didn't logged in 1 -> admin logged in
-            // pass to main menu if the adminstrator has signed up
-            switch (showMainMenu())
-            {
-            // adminstrator login option
-            case 1:
-                // show options in admin menu
-                switch (adminLogin())
-                {
-                // adding a new flight
-                case 1:
-                    addFlight();
-                    break;
-                // editing current flights
-                case 2:
-                    break;
-                // deleting flights
-                case 3:
-                    break;
-                // listing current flights
-                case 4:
-                    listFlights();
-                    break;
-                // listing bookings
-                case 5:
-                    break;
-                // changing password option
-                case 6:
-                    createPassword();
-                    break;
-                // returning to main menu option
-                case 0:
-                    break;
-                // default option for false inputs
-                default:
-                    printf("\n!!!!! An error occurred");
-                }
-
-            // passenger menu option
-            case 2:
-                printf("passenger\n");
-                break;
-            // exiting from the program option
-            case 0:
-                printf("\nThe program has successfully closed.\nSEE YOU LATER!\n");
-
-                getch(); // end of the program statement and provide that the program doesn't end without user permission
-                return 0;
-            // default option for false inputs
-            default:
-                printf("\n!!!!! An error occurred");
-            }
+            showMainMenu();
         }
     }
 
@@ -207,7 +156,7 @@ void createPassword()
 }
 
 // a function to show the main menu
-int showMainMenu()
+void showMainMenu()
 {
     design(); // designing
 
@@ -218,7 +167,30 @@ int showMainMenu()
     printf("\nPlease make your login option: ");
     scanf("%d", &choice);
 
-    return choice;
+    // pass to main menu if the adminstrator has signed up
+    switch (choice)
+    {
+    // adminstrator login option
+    case 1:
+        // make admin log in and show options in admin menu
+        adminLogin();
+        break;
+
+    // passenger menu option
+    case 2:
+        printf("passenger\n");
+        break;
+
+    // exiting from the program option
+    case 0:
+        printf("\nThe program has successfully closed.\nSEE YOU LATER!\n");
+
+        getch(); // end of the program statement and provide that the program doesn't end without user permission
+        return 0;
+    // default option for false inputs
+    default:
+        printf("\n!!!!! An error occurred");
+    }
 }
 
 // a function to provide access to the admin menu by password checking
@@ -237,8 +209,40 @@ int adminLogin()
     // comparing the passwords and if the input is correct, continue to the program
     if (!strcmp(password[0], password[1]))
     {
-        printf("\n");
-        return showAdminMenu(); // if the login comes true succesfully, direct to the admin menu
+        while (True)
+        {
+            switch (showAdminMenu())
+            {
+            // adding a new flight
+            case 1:
+                addFlight();
+                break;
+            // editing current flights
+            case 2:
+                break;
+            // deleting flights
+            case 3:
+                break;
+            // listing current flights
+            case 4:
+                listFlights();
+                break;
+            // listing bookings
+            case 5:
+                break;
+            // changing password option
+            case 6:
+                createPassword();
+                break;
+            // returning to main menu option
+            case 0:
+                break;
+            // default option for false inputs
+            default:
+                printf("\n!!!!! An error occurred");
+            }
+            printf("\n");
+        }
     }
     else
     {
@@ -250,6 +254,8 @@ int adminLogin()
 // a function to open adminstrator menu if the admin has loginned succesfully
 int showAdminMenu()
 {
+    design(); // designing
+
     int choice;
     printf("1. Add a new flight\n");
     printf("2. Edit available flights\n");
@@ -348,7 +354,8 @@ void listFlights()
         counter++; //increment counter
     }
 
-    if(counter == 1){
+    if (counter == 1)
+    {
         printf("There are not any flight records!");
     }
 
