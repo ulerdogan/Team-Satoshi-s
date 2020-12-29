@@ -76,6 +76,7 @@ int main()
         }
         else
         {
+            // a variable to keep session status: 0 -> admin didn't logged in 1 -> admin logged in
             // pass to main menu if the adminstrator has signed up
             switch (showMainMenu())
             {
@@ -284,7 +285,7 @@ void addFlight()
     nfPtr->flightCode = 1111;
     printf("Please enter the airlines: ");
     scanf("%s", nfPtr->airlines);
-    printf("Please enter the departure airport: ");
+    printf("\nPlease enter the departure airport: ");
     scanf("%s", nfPtr->depAirport);
     printf("\nPlease enter the destination airport: ");
     scanf("%s", nfPtr->destAirport);
@@ -300,10 +301,6 @@ void addFlight()
     fprintf(flPtr, "%d %s %s %s %.2f %.2f %d\n", nfPtr->flightCode, nfPtr->airlines, nfPtr->depAirport, nfPtr->destAirport, nfPtr->timeOfDep, nfPtr->timeOfDest, nfPtr->passengerCapacity);
     printf("\n The flight has recorded succesfully...\n");
     fclose(flPtr);
-
-    //return to the admin menu after the process
-    design(); // designing
-    showAdminMenu();
 }
 
 // a function to list added flights from the file database
@@ -356,8 +353,4 @@ void listFlights()
     }
 
     fclose(flPtr); // close the file
-
-    //return to the admin menu after the process
-    design(); // designing
-    showAdminMenu();
 }
