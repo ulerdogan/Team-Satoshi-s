@@ -35,9 +35,9 @@ int adminLogin();
 // function that shows the admin menu
 int showAdminMenu();
 // function that records flights to file database
-int addFlight();
+void addFlight();
 // function that lists and prints available flights
-int listFlights();
+void listFlights();
 
 // structs that we used in our program
 
@@ -263,7 +263,7 @@ int showAdminMenu()
 }
 
 // a function to add flights by adminstrator to file database
-int addFlight()
+void addFlight()
 {
     design(); // designing
 
@@ -303,11 +303,11 @@ int addFlight()
 
     //return to the admin menu after the process
     design(); // designing
-    return showAdminMenu();
+    showAdminMenu();
 }
 
 // a function to list added flights from the file database
-int listFlights()
+void listFlights()
 {
     design(); // designing
 
@@ -359,5 +359,5 @@ int listFlights()
 
     //return to the admin menu after the process
     design(); // designing
-    return showAdminMenu();
+    showAdminMenu();
 }
