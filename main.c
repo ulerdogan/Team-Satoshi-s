@@ -311,12 +311,22 @@ int listFlights()
 {
     design(); // designing
 
-    FILE *flPtr;                       // pointer for flights file database
+    FILE *flPtr; // pointer for flights file database
+
+    // create file database if does not exist to prevent errors
+    if (fopen("flights.txt", "r") == NULL)
+    {
+        flPtr = fopen("flights.txt", "w");
+        fclose(flPtr);
+    }
+
     flPtr = fopen("flights.txt", "r"); // opening file database to read lines
 
     Flight readFlight; // struct for placing the flight informations that have read
     Flight *rfPtr;     // pointer to manage struct
     rfPtr = &readFlight;
+
+    int counter = 1; // a variable to count the flight recors
 
     // reading the first records on the data
     fscanf(flPtr, "%d", &rfPtr->flightCode);
@@ -327,10 +337,10 @@ int listFlights()
     fscanf(flPtr, "%f", &rfPtr->timeOfDest);
     fscanf(flPtr, "%d", &rfPtr->passengerCapacity);
 
-    // keep reading data from the file while not end of the file and print them
+    // keep reading data from the file while not end of the file then print them
     while (!feof(flPtr))
     {
-        printf("%d %s %s %s %.2f %.2f %d\n", rfPtr->flightCode, rfPtr->airlines, rfPtr->depAirport, rfPtr->destAirport, rfPtr->timeOfDep, rfPtr->timeOfDest, rfPtr->passengerCapacity);
+        printf("%d- %d %s %s %s %.2f %.2f %d\n", counter, rfPtr->flightCode, rfPtr->airlines, rfPtr->depAirport, rfPtr->destAirport, rfPtr->timeOfDep, rfPtr->timeOfDest, rfPtr->passengerCapacity);
         fscanf(flPtr, "%d", &rfPtr->flightCode);
         fscanf(flPtr, "%s", rfPtr->airlines);
         fscanf(flPtr, "%s", rfPtr->depAirport);
@@ -338,6 +348,11 @@ int listFlights()
         fscanf(flPtr, "%f", &rfPtr->timeOfDep);
         fscanf(flPtr, "%f", &rfPtr->timeOfDest);
         fscanf(flPtr, "%d", &rfPtr->passengerCapacity);
+        counter++; //increment counter
+    }
+
+    if(counter == 1){
+        printf("There are not any flight records!");
     }
 
     fclose(flPtr); // close the file

@@ -1,5 +1,1 @@
 1111 Pegasus Adana Istanbul 14.15 15.20 300
-2222 THY Izmir Adana 15.20 16.05 450
-3333 Istanbul Ankara 16.10 17.00 350
-4444 THY Antalya Istanbul 18.20 19.30 300
-1111 Sun Trabzon Ankara 20.00 21.10 200
