@@ -17,7 +17,6 @@ Serdar Yaşar - 010190077
 // a global variable to control main loop
 int globalBoolean = 1;
 
-
 // the function prototypes
 
 // check if adminstrator of the system signed up
@@ -32,6 +31,8 @@ void design();
 int adminLogin();
 // function that shows the admin menu
 int showAdminMenu();
+// generating flight codes for the flights
+int generateFlightCode();
 // function that records flights to file database
 void addFlight();
 // function that lists and prints available flights
@@ -42,11 +43,11 @@ void listFlights();
 // a structure of the fligths that recorded to the system
 typedef struct _Flight
 {
-    // "flight code, departure airport, destination airport, time of departure, time of destination and passenger capacity" records
-    int flightCode;
-    char airlines[AIR_NAME_LENGTH];    // between 1111 - 9999
-    char depAirport[AIR_NAME_LENGTH];  // the maximum length of the airport names' strings are being controlled by "AIR_NAME_LENGTH" macro
-    char destAirport[AIR_NAME_LENGTH]; // the maximum length of the airport names' strings are being controlled by "AIR_NAME_LENGTH" macro
+    // "flight code, airlines, departure airport, destination airport, time of departure, time of destination and passenger capacity" records
+    int flightCode;                    // between 1111 - 9999
+    char airlines[AIR_NAME_LENGTH];    // the maximum length of the airport and airlines names' strings are being controlled by "AIR_NAME_LENGTH" macro
+    char depAirport[AIR_NAME_LENGTH];  // the maximum length of the airport and airlines names' strings are being controlled by "AIR_NAME_LENGTH" macro
+    char destAirport[AIR_NAME_LENGTH]; // the maximum length of the airport and airlines names' strings are being controlled by "AIR_NAME_LENGTH" macro
     float timeOfDep;                   // "HH.MM" format : time of departure
     float timeOfDest;                  // "HH.MM" format : time of destination
     int passengerCapacity;             // passenger capacities of the planes
@@ -182,8 +183,8 @@ void showMainMenu()
     // exiting from the program option
     case 0:
         printf("\nThe program has successfully closed.\nSEE YOU LATER!\n");
-        
         globalBoolean = 0; // to end main loop of the program
+        break;
 
     // default option for false inputs
     default:
@@ -269,6 +270,35 @@ int showAdminMenu()
     return choice;
 }
 
+// generating flight codes for the flights
+int generateFlightCode()
+{
+    int firstFlightCode = 1111;
+
+    Flight controlFlight; // a control struct to the file database
+    Flight *cfPtr;        // pointer for control flight struct
+    cfPtr = &controlFlight;
+
+    FILE *flPtr; // pointer for flights file database
+    // if there are not a flights database
+    flPtr = fopen("flights.txt", "r");
+
+    while (!feof(flPtr))
+    {
+        fscanf(flPtr, "%d", &cfPtr->flightCode);
+        fscanf(flPtr, "%s", cfPtr->airlines);
+        fscanf(flPtr, "%s", cfPtr->depAirport);
+        fscanf(flPtr, "%s", cfPtr->destAirport);
+        fscanf(flPtr, "%f", &cfPtr->timeOfDep);
+        fscanf(flPtr, "%f", &cfPtr->timeOfDest);
+        fscanf(flPtr, "%d", &cfPtr->passengerCapacity);
+        firstFlightCode = cfPtr->flightCode;
+    }
+    // to restart the flight code sequence
+    if(firstFlightCode == 9999) firstFlightCode = 1110;
+    return ++firstFlightCode;
+}
+
 // a function to add flights by adminstrator to file database
 void addFlight()
 {
@@ -288,7 +318,7 @@ void addFlight()
     }
 
     // inputting required informations
-    nfPtr->flightCode = 1111;
+    nfPtr->flightCode = generateFlightCode();
     printf("Please enter the airlines: ");
     scanf("%s", nfPtr->airlines);
     printf("\nPlease enter the departure airport: ");
