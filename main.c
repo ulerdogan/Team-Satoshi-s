@@ -14,11 +14,9 @@ Serdar Yaşar - 010190077
 #define PASSWORD_LENGTH 20 // the maximum length of the adminstrator passwords is being controlled by "PASSWORD_LENGTH" macro
 #define NAME_LENGTH 30     // the maximum length of the name is being controlled by "NAME_LENGTH" macro
 
-enum boolean
-{
-    False,
-    True
-}; // created an enumeration to be used in the loops
+// a global variable to control main loop
+int globalBoolean = 1;
+
 
 // the function prototypes
 
@@ -67,7 +65,7 @@ typedef struct _Booking
 int main()
 {
     // the loop that keeps the program running
-    while (True)
+    while (globalBoolean)
     {
         // keep the program going by admin signing up menu or by the main menu according to sign up status (use password record as control)
         if (isAdminSignedUp() == 0)
@@ -184,9 +182,9 @@ void showMainMenu()
     // exiting from the program option
     case 0:
         printf("\nThe program has successfully closed.\nSEE YOU LATER!\n");
+        
+        globalBoolean = 0; // to end main loop of the program
 
-        getch(); // end of the program statement and provide that the program doesn't end without user permission
-        return 0;
     // default option for false inputs
     default:
         printf("\n!!!!! An error occurred");
@@ -209,7 +207,8 @@ int adminLogin()
     // comparing the passwords and if the input is correct, continue to the program
     if (!strcmp(password[0], password[1]))
     {
-        while (True)
+        int boolean = 1; // a boolean variable to control while loop
+        while (boolean)
         {
             switch (showAdminMenu())
             {
@@ -236,6 +235,7 @@ int adminLogin()
                 break;
             // returning to main menu option
             case 0:
+                boolean = 0;
                 break;
             // default option for false inputs
             default:
