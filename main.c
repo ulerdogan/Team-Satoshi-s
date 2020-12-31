@@ -592,21 +592,22 @@ void passBookFlight()
   
      
         printf("%s","Please Enter the Name of Departure Airport and Press Enter\n");
-        scanf("%s\n", cmpdepAirport);
-        printf("%s\n", "Please Enter the Name of Destination Airport and Press Enter\n");
-        scanf("%s\n", cmpdestAirport);
+        scanf("%s", cmpdepAirport);
+        printf("%s", "Please Enter the Name of Destination Airport and Press Enter\n");
+        scanf("%s", cmpdestAirport);
+
+        fscanf(pbfPtr, "%d", &fpassPtr->flightCode);
+        fscanf(pbfPtr, "%s", fpassPtr->airlines);
+        fscanf(pbfPtr, "%s", fpassPtr->depAirport);
+        fscanf(pbfPtr, "%s", fpassPtr->destAirport);
+        fscanf(pbfPtr, "%f", &fpassPtr->timeOfDep);
+        fscanf(pbfPtr, "%f", &fpassPtr->timeOfDest);
+        fscanf(pbfPtr, "%d", &fpassPtr->passengerCapacity);
 
         while (!feof(pbfPtr))
         {
-            fscanf(pbfPtr, "%d", &fpassPtr->flightCode);
-            fscanf(pbfPtr, "%s", fpassPtr->airlines);
-            fscanf(pbfPtr, "%s", fpassPtr->depAirport);
-            fscanf(pbfPtr, "%s", fpassPtr->destAirport);
-            fscanf(pbfPtr, "%f", &fpassPtr->timeOfDep);
-            fscanf(pbfPtr, "%f", &fpassPtr->timeOfDest);
-            fscanf(pbfPtr, "%d", &fpassPtr->passengerCapacity);
-
-            if ((strcmp(cmpdepAirport, fpassPtr->depAirport) == 0 && strcmp(cmpdestAirport, fpassPtr->destAirport) == 0))
+            
+            if (!(strcmp(cmpdepAirport, fpassPtr->depAirport) == 0 && strcmp(cmpdestAirport, fpassPtr->destAirport) == 0))
             {
                 printf("%d %s %s %s %f %f %d\n",fpassPtr->flightCode, fpassPtr->airlines, fpassPtr->depAirport, fpassPtr->destAirport,
                                                             fpassPtr->timeOfDep, fpassPtr->timeOfDest, fpassPtr->passengerCapacity);       
@@ -616,7 +617,15 @@ void passBookFlight()
             {
                 printf("%s", "İstediğiniz uçuş seferi şimdilik yok!");
             }
+            
+            fscanf(pbfPtr, "%d", &fpassPtr->flightCode);
+            fscanf(pbfPtr, "%s", fpassPtr->airlines);
+            fscanf(pbfPtr, "%s", fpassPtr->depAirport);
+            fscanf(pbfPtr, "%s", fpassPtr->destAirport);
+            fscanf(pbfPtr, "%f", &fpassPtr->timeOfDep);
+            fscanf(pbfPtr, "%f", &fpassPtr->timeOfDest);
+            fscanf(pbfPtr, "%d", &fpassPtr->passengerCapacity);
         }
-
+    fclose(pbfPtr);
     return;
 }
