@@ -116,8 +116,8 @@ int isAdminSignedUp()
 // a function that provides the sign up for the first time and makes the password changes
 void createPassword()
 {
-    FILE *pwPtr;                    // pointer for password file database
-    char password[PASSWORD_LENGTH]; // a string that keeps new password
+    FILE *pwPtr;                       // pointer for password file database
+    char password[2][PASSWORD_LENGTH]; // a string that keeps entered new passwords
     // check if are there record on the password database
     //if there are not a password record, create password and provide sign up; else verify the old password and change it
     if (fopen("password.txt", "r") == NULL)
@@ -132,27 +132,36 @@ void createPassword()
     else
     {
         design();                             // designing
-        char oldPassword[3][PASSWORD_LENGTH]; // a string array to verify be used in verifing passwords
-        printf("Please, verify your password: ");
+        char oldPassword[2][PASSWORD_LENGTH]; // a string array to verify be used in verifing passwords
+        printf("Please, verify your old password: ");
         scanf("%s", oldPassword[1]); // 1 indexed element is for checking old password
-        printf("Please, verify your password again: ");
-        scanf("%s", oldPassword[2]); // 2 indexed element is for checking old password
 
         pwPtr = fopen("password.txt", "r");  // open file to read old password
         fscanf(pwPtr, "%s", oldPassword[0]); // 0 indexed element is for getting and checking password from file database
 
-        if (!strcmp(oldPassword[1], oldPassword[2]) && !strcmp(oldPassword[0], oldPassword[1])) // && !strcmp(oldPassword[0], DOSYADAKİ ŞİFRE) FILE OKUYUP KARŞILAŞTIRMA ÖZELLİĞİ EKLENECEK
+        if (!strcmp(oldPassword[1], oldPassword[0])) // if the passwords that entered and read from database match, get new password and change it
         {
             design(); // designing
             printf("Please enter your new password (less than 20 characters): ");
-            scanf("%s", password);
-            pwPtr = fopen("password.txt", "w");
-            fprintf(pwPtr, "%s", password);
+            scanf("%s", password[0]);
+            printf("Please enter your new password again: ");
+            scanf("%s", password[1]);
+            if (!strcmp(password[1], password[0]))
+            {
+                pwPtr = fopen("password.txt", "w");
+                fprintf(pwPtr, "%s", password[0]);
+                printf("\nThe password has succesfully changed...\nYou are redirected to the main menu.");
+            }
+            else
+            {
+                design(); // designing
+                printf("The passwords that you entered didn't match...\nYou are redirected to the main menu.");
+            }
         }
         else
         {
             design(); // designing
-            printf("The passwords that you entered didn't match...");
+            printf("The passwords that you entered didn't match...\nYou are redirected to the main menu.");
         }
     }
     fclose(pwPtr);
@@ -220,7 +229,7 @@ int adminLogin()
     design(); // designing
 
     FILE *pwPtr;                        // pointer for password file database
-    char password[2][PASSWORD_LENGTH];  // a string array that keeps passwords entered and signupped to match to login
+    char password[2][PASSWORD_LENGTH];  // a string array that keeps passwords entered and sign upped to match to login
     pwPtr = fopen("password.txt", "r"); // open file to read password from file database
     fscanf(pwPtr, "%s", password[0]);   // 0 indexed element is for getting and checking password from file database
 
@@ -235,6 +244,7 @@ int adminLogin()
         int boolean = 1; // a boolean variable to control while loop
         while (boolean)
         {
+            // a switch case that calls the menu functions by the return of show admin menu function
             switch (showAdminMenu())
             {
             // adding a new flight
@@ -259,10 +269,11 @@ int adminLogin()
             // changing password option
             case 6:
                 createPassword();
+                boolean = 0; // to be returned to main menu after the password changing process
                 break;
             // returning to main menu option
             case 0:
-                boolean = 0; // ending the while loop
+                boolean = 0; // ending the while loop and returning to main menu
                 break;
             // default option for false inputs
             default:
