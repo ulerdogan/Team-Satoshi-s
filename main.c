@@ -9,41 +9,39 @@ Serdar Yaşar - 010190077
 #include <stdio.h>
 #include <conio.h>  // included this library to take getch() function to keep console window opened at the end of the program
 #include <string.h> // included this library to use string functions
+#include <stdlib.h>
 
 #define AIR_NAME_LENGTH 20 // the maximum length of the airport and airlines names' strings are being controlled by "AIR_NAME_LENGTH" macro
 #define PASSWORD_LENGTH 20 // the maximum length of the adminstrator passwords is being controlled by "PASSWORD_LENGTH" macro
 #define NAME_LENGTH 30     // the maximum length of the name is being controlled by "NAME_LENGTH" macro
 
-
-int globalBoolean = 1;      // a global variable to control main loop
+int globalBoolean = 1; // a global variable to control main loop
 
 // the function prototypes
 
+int isAdminSignedUp(); // check if adminstrator of the system signed up
 
-int isAdminSignedUp();      // check if adminstrator of the system signed up
-                            
-void createPassword();      // provide the sign up for the first time and make the password changes
+void createPassword(); // provide the sign up for the first time and make the password changes
 
-void showMainMenu();        // function that shows the main menu
+void showMainMenu(); // function that shows the main menu
 
-void design();              // menu switches designing function
+void design(); // menu switches designing function
 
-int showAdminMenu();        // function that shows the admin menu
+int showAdminMenu(); // function that shows the admin menu
 
-int adminLogin();           // function that provides log in by password check
+int adminLogin(); // function that provides log in by password check
 
-int generateFlightCode();   // generating flight codes for the flights
+int generateFlightCode(); // generating flight codes for the flights
 
-void addFlight();           // function that records flights to file database
+void addFlight(); // function that records flights to file database
 
-void listFlights();         // function that lists and prints available flights
+void listFlights(); // function that lists and prints available flights
 
-void deleteFlight();        // function that deletes the chosen flight
+void deleteFlight(); // function that deletes the chosen flight
 
-void editFlight();          // function that edits the chosen flight
+void editFlight(); // function that edits the chosen flight
 
-void passBookFlight(); 
-
+void listPassFlight();
 
 // structs that we used in our program
 
@@ -90,7 +88,6 @@ int main()
     return 0;
 }
 
-
 // functions
 
 // a function that makes menu switch designs
@@ -107,14 +104,14 @@ int isAdminSignedUp()
     // check the file database and find a adminstrator password
     if (fopen("password.txt", "r") == NULL)
     {
-       
+
         return 0; // if there are not a password, return 0 and express that admin must be signed up
     }
     else
     {
-        
+
         return 1; // if there are a password, return 1 and express that there is an admin
-    }   
+    }
 }
 
 // a function that provides the sign up for the first time and makes the password changes
@@ -138,12 +135,12 @@ void createPassword()
         design();                             // designing
         char oldPassword[3][PASSWORD_LENGTH]; // a string array to verify be used in verifing passwords
         printf("Please, verify your password: ");
-        scanf("%s", oldPassword[1]);          // 1 indexed element is for checking old password
+        scanf("%s", oldPassword[1]); // 1 indexed element is for checking old password
         printf("Please, verify your password again: ");
-        scanf("%s", oldPassword[2]);          // 2 indexed element is for checking old password
+        scanf("%s", oldPassword[2]); // 2 indexed element is for checking old password
 
-        pwPtr = fopen("password.txt", "r");   // open file to read old password
-        fscanf(pwPtr, "%s", oldPassword[0]);  // 0 indexed element is for getting and checking password from file database
+        pwPtr = fopen("password.txt", "r");  // open file to read old password
+        fscanf(pwPtr, "%s", oldPassword[0]); // 0 indexed element is for getting and checking password from file database
 
         if (!strcmp(oldPassword[1], oldPassword[2]) && !strcmp(oldPassword[0], oldPassword[1])) // && !strcmp(oldPassword[0], DOSYADAKİ ŞİFRE) FILE OKUYUP KARŞILAŞTIRMA ÖZELLİĞİ EKLENECEK
         {
@@ -185,7 +182,7 @@ void showMainMenu()
 
     // passenger menu option
     case 2:
-        passBookFlight();
+        listPassFlight();
         break;
 
     // exiting from the program option
@@ -571,31 +568,62 @@ void editFlight()
 }
 
 
-void passBookFlight()
+void listPassFlight()
 {
+    design();
 
-    design(); // designing
+    FILE *pbfPtr; // File pointer for "flights.txt" database
 
-    // For holding dep. and dest. informations are which came from user input
-    char cmpdepAirport[AIR_NAME_LENGTH], cmpdestAirport[AIR_NAME_LENGTH];
-
-    Flight *fpassPtr, fpassFlight; // For holding dep. and dest. informations are which came from "flight.txt" database
-    FILE *pbfPtr;                  // File pointer for "flights.txt" database
-
-
-    if(pbfPtr = fopen ("flights.txt", "r") == NULL)
+    if (pbfPtr = fopen("flights.txt", "r") == NULL)
     {
         printf("%s", "Our service is temporarily unavailable. Please try again later!");
-    
     }
 
-  
-     
-        printf("%s","Please Enter the Name of Departure Airport and Press Enter\n");
-        scanf("%s", cmpdepAirport);
-        printf("%s", "Please Enter the Name of Destination Airport and Press Enter\n");
-        scanf("%s", cmpdestAirport);
+    pbfPtr = fopen("flights.txt", "r");
 
+    char cmpdepAirport[AIR_NAME_LENGTH], cmpdestAirport[AIR_NAME_LENGTH];
+    Flight *fpassPtr, fpassFlight; // For holding dep. and dest. informations are which came from "flight.txt" database for comparing
+    fpassPtr = &fpassFlight;
+
+    printf("%s", "Please Enter the Name of Departure Airport and Press Enter\n");
+    scanf("%s", cmpdepAirport);
+    printf("%s", "Please Enter the Name of Destination Airport and Press Enter\n");
+    scanf("%s", cmpdestAirport);
+
+    fscanf(pbfPtr, "%d", &fpassPtr->flightCode);
+    fscanf(pbfPtr, "%s", fpassPtr->airlines);
+    fscanf(pbfPtr, "%s", fpassPtr->depAirport);
+    fscanf(pbfPtr, "%s", fpassPtr->destAirport);
+    fscanf(pbfPtr, "%f", &fpassPtr->timeOfDep);
+    fscanf(pbfPtr, "%f", &fpassPtr->timeOfDest);
+    fscanf(pbfPtr, "%d", &fpassPtr->passengerCapacity);
+
+ 
+    int *iPtr, i = 1; //It is an indexer for determining subscript of flightInfo[]
+    iPtr = &i;
+
+    Flight *flightInfo;
+    flightInfo = malloc(sizeof(Flight)); //For storing available flights, show them to the user and providing to choose any of available flight
+
+    while (!feof(pbfPtr))
+    {
+
+        if ((strcmp(cmpdepAirport, fpassPtr->depAirport) == 0) && (strcmp(cmpdestAirport, fpassPtr->destAirport) == 0))
+        {
+            
+            flightInfo[i-1] = fpassFlight;
+            printf("%d %s %s %s %.2f %.2f %d\n", flightInfo[i-1].flightCode, flightInfo[i-1].airlines, flightInfo[i-1].depAirport,
+                   flightInfo[i-1].destAirport, flightInfo[i-1].timeOfDep, flightInfo[i-1].timeOfDest,
+                   flightInfo[i-1].passengerCapacity);
+
+            *iPtr++;
+            flightInfo = realloc(flightInfo, i * sizeof(Flight));
+        }
+        else
+        {
+            printf("%s","");
+        }
+        
         fscanf(pbfPtr, "%d", &fpassPtr->flightCode);
         fscanf(pbfPtr, "%s", fpassPtr->airlines);
         fscanf(pbfPtr, "%s", fpassPtr->depAirport);
@@ -603,29 +631,6 @@ void passBookFlight()
         fscanf(pbfPtr, "%f", &fpassPtr->timeOfDep);
         fscanf(pbfPtr, "%f", &fpassPtr->timeOfDest);
         fscanf(pbfPtr, "%d", &fpassPtr->passengerCapacity);
-
-        while (!feof(pbfPtr))
-        {
-            
-            if (!(strcmp(cmpdepAirport, fpassPtr->depAirport) == 0 && strcmp(cmpdestAirport, fpassPtr->destAirport) == 0))
-            {
-                printf("%d %s %s %s %f %f %d\n",fpassPtr->flightCode, fpassPtr->airlines, fpassPtr->depAirport, fpassPtr->destAirport,
-                                                            fpassPtr->timeOfDep, fpassPtr->timeOfDest, fpassPtr->passengerCapacity);       
-
-            }
-            else if ((strcmp(cmpdepAirport, fpassPtr->depAirport) != 0 && strcmp(cmpdestAirport, fpassPtr->destAirport) != 0))
-            {
-                printf("%s", "İstediğiniz uçuş seferi şimdilik yok!");
-            }
-            
-            fscanf(pbfPtr, "%d", &fpassPtr->flightCode);
-            fscanf(pbfPtr, "%s", fpassPtr->airlines);
-            fscanf(pbfPtr, "%s", fpassPtr->depAirport);
-            fscanf(pbfPtr, "%s", fpassPtr->destAirport);
-            fscanf(pbfPtr, "%f", &fpassPtr->timeOfDep);
-            fscanf(pbfPtr, "%f", &fpassPtr->timeOfDest);
-            fscanf(pbfPtr, "%d", &fpassPtr->passengerCapacity);
-        }
+    }
     fclose(pbfPtr);
-    return;
 }
