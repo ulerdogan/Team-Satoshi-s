@@ -526,7 +526,7 @@ void editFlight()
 
         // a variable that keeps the index of the chosen data type
         int type;
-        printf("1. Airline\n2. Departure Airport\n3. Destination Airport\n 4. Time of Departure\n5. Time of Destination\n 6. Capacity\n");
+        printf("\n1. Airline\n2. Departure Airport\n3. Destination Airport\n4. Time of Departure\n5. Time of Destination\n6. Capacity\n");
         printf("\nPlease write the index of the data type you want to change: ");
         scanf("%d", &type);
 
@@ -534,7 +534,8 @@ void editFlight()
         Flight *efPtr;       // pointer for control flight struct
         efPtr = &editedFlight;
 
-        int counter = 1; // a counter to find the flight that want to be deleted.
+        int counter = 1;       // a counter to find the flight that want to be deleted.
+        int deleteChecker = 1; // a variable that will check the false inputs and if any edit operation doesn't process gives alert
 
         FILE *flPtr;                       // pointer for flights file database
         flPtr = fopen("flights.txt", "r"); // open the file to read the flights
@@ -558,6 +559,7 @@ void editFlight()
             if (counter != edited)
             {
                 fprintf(tflPtr, "%d %s %s %s %.2f %.2f %d\n", efPtr->flightCode, efPtr->airlines, efPtr->depAirport, efPtr->destAirport, efPtr->timeOfDep, efPtr->timeOfDest, efPtr->passengerCapacity);
+                deleteChecker++; // increment on every passing index
             }
             else
             {
@@ -603,6 +605,12 @@ void editFlight()
             fscanf(flPtr, "%d", &efPtr->passengerCapacity);
 
             counter++;
+        }
+
+        // if the counter for the records and counter for the passed records are equal, it means any edit operation didn't happened
+        if (deleteChecker == counter)
+        {
+            printf("\n!!!!! An error occurred");
         }
 
         fclose(flPtr);  // close the file
