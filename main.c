@@ -42,8 +42,6 @@ int listFlights();
 void deleteFlight();
 // function that edits the chosen flight
 void editFlight();
-// function that lists bookings
-void listBookings();
 
 // structs that we used in our program
 
@@ -607,57 +605,3 @@ void editFlight()
         rename("t_flights.txt", "flights.txt");
     }
 }
-/*
-// a function to list current bookings
-void listBookings()
-{
-    design(); // designing
-
-    FILE *bPtr; // pointer for bookings file database
-
-    // create file database if does not exist to prevent errors
-    if (fopen("bookings.txt", "r") == NULL) ////!!!!!!!!!!!!!!!!!////////////////
-    {
-        bPtr = fopen("bookings.txt", "w");
-        fclose(bPtr);
-    }
-
-    bPtr = fopen("bookings.txt", "r"); // opening file database to read lines
-
-    Booking readBooking; // struct for placing the booking informations that have read
-    Booking *rbPtr;      // pointer to manage struct
-    rbPtr = &readBooking;
-
-    int counter = 1; // a variable to count the bookings
-
-    // reading the first records on the data
-    fscanf(bPtr, "%d", &rbPtr->flightCode);
-    fscanf(bPtr, "%s", rbPtr->airlines);
-    fscanf(bPtr, "%s", rbPtr->depAirport);
-    fscanf(bPtr, "%s", rbPtr->destAirport);
-    fscanf(bPtr, "%f", &rbPtr->timeOfDep);
-    fscanf(bPtr, "%f", &rbPtr->timeOfDest);
-    fscanf(bPtr, "%d", &rbPtr->passengerCapacity);
-
-    // keep reading data from the file while not end of the file then print them
-    while (!feof(bPtr))
-    {
-        printf("%d- %d %s %s %s %.2f %.2f %d\n", counter, rfPtr->flightCode, rfPtr->airlines, rfPtr->depAirport, rfPtr->destAirport, rfPtr->timeOfDep, rfPtr->timeOfDest, rfPtr->passengerCapacity);
-        fscanf(bPtr, "%d", &rbPtr->flightCode);
-        fscanf(bPtr, "%s", rbPtr->airlines);
-        fscanf(bPtr, "%s", rbPtr->depAirport);
-        fscanf(bPtr, "%s", rbPtr->destAirport);
-        fscanf(bPtr, "%f", &rbPtr->timeOfDep);
-        fscanf(bPtr, "%f", &rbPtr->timeOfDest);
-        fscanf(bPtr, "%d", &rbPtr->passengerCapacity);
-        counter++; //increment counter
-    }
-
-    if (counter == 1)
-    {
-        printf("There are not any booking records!");
-    }
-
-    fclose(bPtr); // close the file
-}
-*/
