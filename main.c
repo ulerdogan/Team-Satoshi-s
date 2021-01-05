@@ -459,7 +459,8 @@ void deleteFlight()
         Flight *dfPtr;        // pointer for control flight struct
         dfPtr = &deletedFlight;
 
-        int counter = 1; // a counter to find the flight that want to be deleted.
+        int counter = 1;       // a counter to find the flight that want to be deleted.
+        int deleteChecker = 1; // a variable that will check the false inputs and if any delete operation doesn't process gives alert
 
         FILE *flPtr;                       // pointer for flights file database
         flPtr = fopen("flights.txt", "r"); // open the file to find the flight
@@ -483,6 +484,7 @@ void deleteFlight()
             if (counter != deleted)
             {
                 fprintf(tflPtr, "%d %s %s %s %.2f %.2f %d\n", dfPtr->flightCode, dfPtr->airlines, dfPtr->depAirport, dfPtr->destAirport, dfPtr->timeOfDep, dfPtr->timeOfDest, dfPtr->passengerCapacity);
+                deleteChecker++; // increment on every passing index
             }
             fscanf(flPtr, "%d", &dfPtr->flightCode);
             fscanf(flPtr, "%s", dfPtr->airlines);
@@ -493,6 +495,12 @@ void deleteFlight()
             fscanf(flPtr, "%d", &dfPtr->passengerCapacity);
 
             counter++;
+        }
+
+        // if the counter for the records and counter for the passed records are equal, it means any delete operation didn't happened
+        if (deleteChecker == counter)
+        {
+            printf("\n!!!!! An error occurred");
         }
 
         fclose(flPtr);  // close the file
@@ -581,7 +589,7 @@ void editFlight()
                     scanf("%d", &efPtr->passengerCapacity);
                     break;
                 default:
-                    printf("An error occured");
+                    printf("!!!!! An error occurred");
                 }
                 // then write the edited data to the temporary file database
                 fprintf(tflPtr, "%d %s %s %s %.2f %.2f %d\n", efPtr->flightCode, efPtr->airlines, efPtr->depAirport, efPtr->destAirport, efPtr->timeOfDep, efPtr->timeOfDest, efPtr->passengerCapacity);
