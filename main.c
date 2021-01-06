@@ -36,7 +36,7 @@ int generateFlightCode(); // generating flight codes for the flights
 
 void addFlight(); // function that records flights to file database
 
-void listFlights(); // function that lists and prints available flights
+int listFlights(); // function that lists and prints available flights
 
 void deleteFlight(); // function that deletes the chosen flight
 
@@ -47,6 +47,10 @@ void listPassFlight();
 void bookPassFlight();
 
 void listPassBooking();
+
+void deletePassBooking();
+
+int showPassMenu();
 
 // structs that we used in our program
 
@@ -76,7 +80,7 @@ typedef struct _Booking
     char destAirport[AIR_NAME_LENGTH]; // the maximum length of the airport and airlines names' strings are being controlled by "AIR_NAME_LENGTH" macro
     float timeOfDep;                   // "HH.MM" format : time of departure
     float timeOfDest;
-    int passengerCapacity;             // passenger capacities of the planes
+    int passengerCapacity; // passenger capacities of the planes
 } Booking;
 
 int main()
@@ -112,27 +116,34 @@ void design()
 // a function that checks if adminstrator of the system signed up
 int isAdminSignedUp()
 {
-    // check the file database and find a adminstrator password
-    if (fopen("password.txt", "r") == NULL)
-    {
+    FILE *pwPtr;                        // pointer for password file database
+    pwPtr = fopen("password.txt", "r"); // opening the password file to check is it existing
 
-        return 0; // if there are not a password, return 0 and express that admin must be signed up
+    // check the file database and find a adminstrator password
+    if (pwPtr == NULL)
+    {
+        // if there are not a password, return 0 and express that admin must be signed up
+        return 0;
     }
     else
     {
-
-        return 1; // if there are a password, return 1 and express that there is an admin
+        // if there are a password, return 1 and express that there is an admin
+        return 1;
     }
+    fclose(pwPtr); // closing the password file database
 }
 
 // a function that provides the sign up for the first time and makes the password changes
 void createPassword()
 {
-    FILE *pwPtr;                    // pointer for password file database
-    char password[PASSWORD_LENGTH]; // a string that keeps new password
+    FILE *pwPtr;                       // pointer for password file database
+    char password[2][PASSWORD_LENGTH]; // a string that keeps entered new passwords
+
+    FILE *tpwPtr; // a temporary file database opening to chech does the file exists
+    tpwPtr = fopen("password.txt", "r");
     // check if are there record on the password database
     //if there are not a password record, create password and provide sign up; else verify the old password and change it
-    if (fopen("password.txt", "r") == NULL)
+    if (tpwPtr == NULL)
     {
         design(); // designing
         printf("Please enter your new password (less than 20 characters): ");
@@ -144,29 +155,39 @@ void createPassword()
     else
     {
         design();                             // designing
-        char oldPassword[3][PASSWORD_LENGTH]; // a string array to verify be used in verifing passwords
-        printf("Please, verify your password: ");
+        char oldPassword[2][PASSWORD_LENGTH]; // a string array to verify be used in verifing passwords
+        printf("Please, verify your old password: ");
         scanf("%s", oldPassword[1]); // 1 indexed element is for checking old password
-        printf("Please, verify your password again: ");
-        scanf("%s", oldPassword[2]); // 2 indexed element is for checking old password
 
         pwPtr = fopen("password.txt", "r");  // open file to read old password
         fscanf(pwPtr, "%s", oldPassword[0]); // 0 indexed element is for getting and checking password from file database
 
-        if (!strcmp(oldPassword[1], oldPassword[2]) && !strcmp(oldPassword[0], oldPassword[1])) // && !strcmp(oldPassword[0], DOSYADAKİ ŞİFRE) FILE OKUYUP KARŞILAŞTIRMA ÖZELLİĞİ EKLENECEK
+        if (!strcmp(oldPassword[1], oldPassword[0])) // if the passwords that entered and read from database match, get new password and change it
         {
             design(); // designing
             printf("Please enter your new password (less than 20 characters): ");
-            scanf("%s", password);
-            pwPtr = fopen("password.txt", "w");
-            fprintf(pwPtr, "%s", password);
+            scanf("%s", password[0]);
+            printf("Please enter your new password again: ");
+            scanf("%s", password[1]);
+            if (!strcmp(password[1], password[0]))
+            {
+                pwPtr = fopen("password.txt", "w");
+                fprintf(pwPtr, "%s", password[0]);
+                printf("\nThe password has succesfully changed...\nYou are redirected to the main menu.");
+            }
+            else
+            {
+                design(); // designing
+                printf("The passwords that you entered didn't match...\nYou are redirected to the main menu.");
+            }
         }
         else
         {
             design(); // designing
-            printf("The passwords that you entered didn't match...");
+            printf("The passwords that you entered didn't match...\nYou are redirected to the main menu.");
         }
     }
+    fclose(tpwPtr); // closing the files
     fclose(pwPtr);
 }
 
@@ -193,7 +214,7 @@ void showMainMenu()
 
     // passenger menu option
     case 2:
-        listPassBooking();
+        showPassMenu();
         break;
 
     // exiting from the program option
@@ -232,7 +253,7 @@ int adminLogin()
     design(); // designing
 
     FILE *pwPtr;                        // pointer for password file database
-    char password[2][PASSWORD_LENGTH];  // a string array that keeps passwords entered and signupped to match to login
+    char password[2][PASSWORD_LENGTH];  // a string array that keeps passwords entered and sign upped to match to login
     pwPtr = fopen("password.txt", "r"); // open file to read password from file database
     fscanf(pwPtr, "%s", password[0]);   // 0 indexed element is for getting and checking password from file database
 
@@ -247,6 +268,7 @@ int adminLogin()
         int boolean = 1; // a boolean variable to control while loop
         while (boolean)
         {
+            // a switch case that calls the menu functions by the return of show admin menu function
             switch (showAdminMenu())
             {
             // adding a new flight
@@ -271,10 +293,11 @@ int adminLogin()
             // changing password option
             case 6:
                 createPassword();
+                boolean = 0; // to be returned to main menu after the password changing process
                 break;
             // returning to main menu option
             case 0:
-                boolean = 0; // ending the while loop
+                boolean = 0; // ending the while loop and returning to main menu
                 break;
             // default option for false inputs
             default:
@@ -337,12 +360,16 @@ void addFlight()
 
     FILE *flPtr; // pointer for flights file database
 
-    // create file database if does not exist
-    if (fopen("flights.txt", "r") == NULL)
+    FILE *tflPtr;                       // pointer for temporary flight database handler
+    tflPtr = fopen("flights.txt", "r"); // opening file to check does it exist
+
+    // create file database if does not exist to prevent errors
+    if (tflPtr == NULL)
     {
         flPtr = fopen("flights.txt", "w");
         fclose(flPtr);
     }
+    fclose(tflPtr); // closing the file that we opened to check
 
     // inputting required informations
     nfPtr->flightCode = generateFlightCode();
@@ -367,18 +394,22 @@ void addFlight()
 }
 
 // a function to list added flights from the file database
-void listFlights()
+int listFlights()
 {
     design(); // designing
 
     FILE *flPtr; // pointer for flights file database
 
+    FILE *tflPtr;                       // pointer for temporary flight database handler
+    tflPtr = fopen("flights.txt", "r"); // opening file to check does it exist
+
     // create file database if does not exist to prevent errors
-    if (fopen("flights.txt", "r") == NULL)
+    if (tflPtr == NULL)
     {
         flPtr = fopen("flights.txt", "w");
         fclose(flPtr);
     }
+    fclose(tflPtr); // closing the file that we opened to check
 
     flPtr = fopen("flights.txt", "r"); // opening file database to read lines
 
@@ -386,7 +417,7 @@ void listFlights()
     Flight *rfPtr;     // pointer to manage struct
     rfPtr = &readFlight;
 
-    int counter = 1; // a variable to count the flight recors
+    int counter = 1; // a variable to count the flight records
 
     // reading the first records on the data
     fscanf(flPtr, "%d", &rfPtr->flightCode);
@@ -400,7 +431,7 @@ void listFlights()
     // keep reading data from the file while not end of the file then print them
     while (!feof(flPtr))
     {
-        printf("%d- %d %s %s %s %.2f %.2f %d\n", counter, rfPtr->flightCode, rfPtr->airlines, rfPtr->depAirport, rfPtr->destAirport, rfPtr->timeOfDep, rfPtr->timeOfDest, rfPtr->passengerCapacity);
+        printf("%2d- %d %s %s %s %.2f %.2f %d\n", counter, rfPtr->flightCode, rfPtr->airlines, rfPtr->depAirport, rfPtr->destAirport, rfPtr->timeOfDep, rfPtr->timeOfDest, rfPtr->passengerCapacity);
         fscanf(flPtr, "%d", &rfPtr->flightCode);
         fscanf(flPtr, "%s", rfPtr->airlines);
         fscanf(flPtr, "%s", rfPtr->depAirport);
@@ -411,54 +442,48 @@ void listFlights()
         counter++; //increment counter
     }
 
+    fclose(flPtr); // close the file
+
     if (counter == 1)
     {
         printf("There are not any flight records!");
-    }
 
-    fclose(flPtr); // close the file
+        // show that there are any records
+        return 0;
+    }
+    else
+    {
+        //show that there are records
+        return 1;
+    }
 }
 
 // a function to delete the chosen flight record
 void deleteFlight()
 {
-    // listing flights before the choosing operation
-    listFlights();
-
-    // a variable that keeps the index of the chosen flight
-    int deleted;
-    printf("\nPlease write the index of the flight that you want to delete: ");
-    scanf("%d", &deleted);
-
-    Flight deletedFlight; // a control struct to the file database
-    Flight *dfPtr;        // pointer for control flight struct
-    dfPtr = &deletedFlight;
-
-    int counter = 1; // a counter to find the flight that want to be deleted.
-
-    FILE *flPtr;                       // pointer for flights file database
-    flPtr = fopen("flights.txt", "r"); // open the file to find the flight
-
-    FILE *tflPtr;                         // pointer for flights temporary file database
-    tflPtr = fopen("t_flights.txt", "w"); // open the file to record the flights temporarily
-
-    // reading the first records on the data
-    fscanf(flPtr, "%d", &dfPtr->flightCode);
-    fscanf(flPtr, "%s", dfPtr->airlines);
-    fscanf(flPtr, "%s", dfPtr->depAirport);
-    fscanf(flPtr, "%s", dfPtr->destAirport);
-    fscanf(flPtr, "%f", &dfPtr->timeOfDep);
-    fscanf(flPtr, "%f", &dfPtr->timeOfDest);
-    fscanf(flPtr, "%d", &dfPtr->passengerCapacity);
-
-    // read the file until the end of file database and record all of the flight to a temporary database except the one want to be deleted
-    while (!feof(flPtr))
+    // listing flights before the choosing operation and direct to the deleting operation if there are records
+    if (listFlights() == 1)
     {
-        // if the flight record that read is not one want to be deleted, write it to the temporary file
-        if (counter != deleted)
-        {
-            fprintf(tflPtr, "%d %s %s %s %.2f %.2f %d\n", dfPtr->flightCode, dfPtr->airlines, dfPtr->depAirport, dfPtr->destAirport, dfPtr->timeOfDep, dfPtr->timeOfDest, dfPtr->passengerCapacity);
-        }
+
+        // a variable that keeps the index of the chosen flight
+        int deleted;
+        printf("\nPlease write the index of the flight that you want to delete: ");
+        scanf("%d", &deleted);
+
+        Flight deletedFlight; // a control struct to the file database
+        Flight *dfPtr;        // pointer for control flight struct
+        dfPtr = &deletedFlight;
+
+        int counter = 1;       // a counter to find the flight that want to be deleted.
+        int deleteChecker = 1; // a variable that will check the false inputs and if any delete operation doesn't process gives alert
+
+        FILE *flPtr;                       // pointer for flights file database
+        flPtr = fopen("flights.txt", "r"); // open the file to find the flight
+
+        FILE *tflPtr;                         // pointer for flights temporary file database
+        tflPtr = fopen("t_flights.txt", "w"); // open the file to record the flights temporarily
+
+        // reading the first records on the data
         fscanf(flPtr, "%d", &dfPtr->flightCode);
         fscanf(flPtr, "%s", dfPtr->airlines);
         fscanf(flPtr, "%s", dfPtr->depAirport);
@@ -467,98 +492,73 @@ void deleteFlight()
         fscanf(flPtr, "%f", &dfPtr->timeOfDest);
         fscanf(flPtr, "%d", &dfPtr->passengerCapacity);
 
-        counter++;
+        // read the file until the end of file database and record all of the flight to a temporary database except the one want to be deleted
+        while (!feof(flPtr))
+        {
+            // if the flight record that read is not one want to be deleted, write it to the temporary file
+            if (counter != deleted)
+            {
+                fprintf(tflPtr, "%d %s %s %s %.2f %.2f %d\n", dfPtr->flightCode, dfPtr->airlines, dfPtr->depAirport, dfPtr->destAirport, dfPtr->timeOfDep, dfPtr->timeOfDest, dfPtr->passengerCapacity);
+                deleteChecker++; // increment on every passing index
+            }
+            fscanf(flPtr, "%d", &dfPtr->flightCode);
+            fscanf(flPtr, "%s", dfPtr->airlines);
+            fscanf(flPtr, "%s", dfPtr->depAirport);
+            fscanf(flPtr, "%s", dfPtr->destAirport);
+            fscanf(flPtr, "%f", &dfPtr->timeOfDep);
+            fscanf(flPtr, "%f", &dfPtr->timeOfDest);
+            fscanf(flPtr, "%d", &dfPtr->passengerCapacity);
+
+            counter++;
+        }
+
+        // if the counter for the records and counter for the passed records are equal, it means any delete operation didn't happened
+        if (deleteChecker == counter)
+        {
+            printf("\n!!!!! An error occurred");
+        }
+
+        fclose(flPtr);  // close the file
+        fclose(tflPtr); // close the file
+
+        // after the deleting and copying process, delete the main file database and make the temporary file, main file
+        remove("flights.txt");
+        rename("t_flights.txt", "flights.txt");
     }
-
-    fclose(flPtr);  // close the file
-    fclose(tflPtr); // close the file
-
-    // after the deleting and copying process, delete the main file database and make the temporary file, main file
-    remove("flights.txt");
-    rename("t_flights.txt", "flights.txt");
 }
 
 // a function to edit the flights that recorded
 void editFlight()
 {
-    // listing flights before the choosing operation
-    listFlights();
-
-    // a variable that keeps the index of the chosen flight
-    int edited;
-    printf("\nPlease write the index of the flight that you want to edit: ");
-    scanf("%d", &edited);
-
-    // a variable that keeps the index of the chosen data type
-    int type;
-    printf("1. Airline\n2. Departure Airport\n3. Destination Airport\n 4. Time of Departure\n5. Time of Destination\n 6. Capacity\n");
-    printf("\nPlease write the index of the data type you want to change: ");
-    scanf("%d", &type);
-
-    Flight editedFlight; // a control struct to the file database
-    Flight *efPtr;       // pointer for control flight struct
-    efPtr = &editedFlight;
-
-    int counter = 1; // a counter to find the flight that want to be deleted.
-
-    FILE *flPtr;                       // pointer for flights file database
-    flPtr = fopen("flights.txt", "r"); // open the file to read the flights
-
-    FILE *tflPtr;                         // pointer for flights temporary file database
-    tflPtr = fopen("t_flights.txt", "w"); // open the file to record the flights temporarily
-
-    // reading the first records on the data
-    fscanf(flPtr, "%d", &efPtr->flightCode);
-    fscanf(flPtr, "%s", efPtr->airlines);
-    fscanf(flPtr, "%s", efPtr->depAirport);
-    fscanf(flPtr, "%s", efPtr->destAirport);
-    fscanf(flPtr, "%f", &efPtr->timeOfDep);
-    fscanf(flPtr, "%f", &efPtr->timeOfDest);
-    fscanf(flPtr, "%d", &efPtr->passengerCapacity);
-
-    // read the file until the end of file database and record all of the flight to a temporary database except the one want to be deleted
-    while (!feof(flPtr))
+    // listing flights before the choosing operation and direct to the editing operation if there are records
+    if (listFlights() == 1)
     {
-        // if the flight record that read is not one want to be edit, write it to the temporary file
-        if (counter != edited)
-        {
-            fprintf(tflPtr, "%d %s %s %s %.2f %.2f %d\n", efPtr->flightCode, efPtr->airlines, efPtr->depAirport, efPtr->destAirport, efPtr->timeOfDep, efPtr->timeOfDest, efPtr->passengerCapacity);
-        }
-        else
-        {
-            //get inputs from the adminstrator about the data that adminstrator wanted to change
-            switch (type)
-            {
-            case 1:
-                printf("\nPlese enter the new airlines of the flight: ");
-                scanf("%s", &efPtr->airlines);
-                break;
-            case 2:
-                printf("\nPlese enter the new departure airport of the flight: ");
-                scanf("%s", efPtr->depAirport);
-                break;
-            case 3:
-                printf("\nPlese enter the new destination airport of the flight: ");
-                scanf("%s", efPtr->destAirport);
-                break;
-            case 4:
-                printf("\nPlese enter the new time of departure of the flight: ");
-                scanf("%f", &efPtr->timeOfDep);
-                break;
-            case 5:
-                printf("\nPlese enter the new time of destination of the flight: ");
-                scanf("%f", &efPtr->timeOfDest);
-                break;
-            case 6:
-                printf("\nPlese enter the capacity of the flight: ");
-                scanf("%d", &efPtr->passengerCapacity);
-                break;
-            default:
-                printf("An error occured");
-            }
-            // then write the edited data to the temporary file database
-            fprintf(tflPtr, "%d %s %s %s %.2f %.2f %d\n", efPtr->flightCode, efPtr->airlines, efPtr->depAirport, efPtr->destAirport, efPtr->timeOfDep, efPtr->timeOfDest, efPtr->passengerCapacity);
-        }
+
+        // a variable that keeps the index of the chosen flight
+        int edited;
+        printf("\nPlease write the index of the flight that you want to edit: ");
+        scanf("%d", &edited);
+
+        // a variable that keeps the index of the chosen data type
+        int type;
+        printf("\n1. Airline\n2. Departure Airport\n3. Destination Airport\n4. Time of Departure\n5. Time of Destination\n6. Capacity\n");
+        printf("\nPlease write the index of the data type you want to change: ");
+        scanf("%d", &type);
+
+        Flight editedFlight; // a control struct to the file database
+        Flight *efPtr;       // pointer for control flight struct
+        efPtr = &editedFlight;
+
+        int counter = 1;       // a counter to find the flight that want to be deleted.
+        int deleteChecker = 1; // a variable that will check the false inputs and if any edit operation doesn't process gives alert
+
+        FILE *flPtr;                       // pointer for flights file database
+        flPtr = fopen("flights.txt", "r"); // open the file to read the flights
+
+        FILE *tflPtr;                         // pointer for flights temporary file database
+        tflPtr = fopen("t_flights.txt", "w"); // open the file to record the flights temporarily
+
+        // reading the first records on the data
         fscanf(flPtr, "%d", &efPtr->flightCode);
         fscanf(flPtr, "%s", efPtr->airlines);
         fscanf(flPtr, "%s", efPtr->depAirport);
@@ -567,15 +567,74 @@ void editFlight()
         fscanf(flPtr, "%f", &efPtr->timeOfDest);
         fscanf(flPtr, "%d", &efPtr->passengerCapacity);
 
-        counter++;
+        // read the file until the end of file database and record all of the flight to a temporary database except the one want to be deleted
+        while (!feof(flPtr))
+        {
+            // if the flight record that read is not one want to be edit, write it to the temporary file
+            if (counter != edited)
+            {
+                fprintf(tflPtr, "%d %s %s %s %.2f %.2f %d\n", efPtr->flightCode, efPtr->airlines, efPtr->depAirport, efPtr->destAirport, efPtr->timeOfDep, efPtr->timeOfDest, efPtr->passengerCapacity);
+                deleteChecker++; // increment on every passing index
+            }
+            else
+            {
+                //get inputs from the adminstrator about the data that adminstrator wanted to change
+                switch (type)
+                {
+                case 1:
+                    printf("\nPlese enter the new airlines of the flight: ");
+                    scanf("%s", &efPtr->airlines);
+                    break;
+                case 2:
+                    printf("\nPlese enter the new departure airport of the flight: ");
+                    scanf("%s", efPtr->depAirport);
+                    break;
+                case 3:
+                    printf("\nPlese enter the new destination airport of the flight: ");
+                    scanf("%s", efPtr->destAirport);
+                    break;
+                case 4:
+                    printf("\nPlese enter the new time of departure of the flight: ");
+                    scanf("%f", &efPtr->timeOfDep);
+                    break;
+                case 5:
+                    printf("\nPlese enter the new time of destination of the flight: ");
+                    scanf("%f", &efPtr->timeOfDest);
+                    break;
+                case 6:
+                    printf("\nPlese enter the capacity of the flight: ");
+                    scanf("%d", &efPtr->passengerCapacity);
+                    break;
+                default:
+                    printf("!!!!! An error occurred");
+                }
+                // then write the edited data to the temporary file database
+                fprintf(tflPtr, "%d %s %s %s %.2f %.2f %d\n", efPtr->flightCode, efPtr->airlines, efPtr->depAirport, efPtr->destAirport, efPtr->timeOfDep, efPtr->timeOfDest, efPtr->passengerCapacity);
+            }
+            fscanf(flPtr, "%d", &efPtr->flightCode);
+            fscanf(flPtr, "%s", efPtr->airlines);
+            fscanf(flPtr, "%s", efPtr->depAirport);
+            fscanf(flPtr, "%s", efPtr->destAirport);
+            fscanf(flPtr, "%f", &efPtr->timeOfDep);
+            fscanf(flPtr, "%f", &efPtr->timeOfDest);
+            fscanf(flPtr, "%d", &efPtr->passengerCapacity);
+
+            counter++;
+        }
+
+        // if the counter for the records and counter for the passed records are equal, it means any edit operation didn't happened
+        if (deleteChecker == counter)
+        {
+            printf("\n!!!!! An error occurred");
+        }
+
+        fclose(flPtr);  // close the file
+        fclose(tflPtr); // close the file
+
+        // after the deleting and copying process, delete the main file database and make the temporary file, main file
+        remove("flights.txt");
+        rename("t_flights.txt", "flights.txt");
     }
-
-    fclose(flPtr);  // close the file
-    fclose(tflPtr); // close the file
-
-    // after the deleting and copying process, delete the main file database and make the temporary file, main file
-    remove("flights.txt");
-    rename("t_flights.txt", "flights.txt");
 }
 
 void listPassFlight()
@@ -588,50 +647,16 @@ void listPassFlight()
     {
         printf("%s", "Our service is temporarily unavailable. Please try again later!");
     }
+    else
+    {  
+        char cmpdepAirport[AIR_NAME_LENGTH], cmpdestAirport[AIR_NAME_LENGTH];
+        Flight *fpassPtr, fpassFlight; // For holding dep. and dest. informations are which came from "flight.txt" database for comparing
+        fpassPtr = &fpassFlight;
 
-    fPtr = fopen("flights.txt", "r");
-
-    char cmpdepAirport[AIR_NAME_LENGTH], cmpdestAirport[AIR_NAME_LENGTH];
-    Flight *fpassPtr, fpassFlight; // For holding dep. and dest. informations are which came from "flight.txt" database for comparing
-    fpassPtr = &fpassFlight;
-
-    printf("%s", "Please Enter the Name of Departure Airport and Press Enter\n");
-    scanf("%s", cmpdepAirport);
-    printf("\n%s", "Please Enter the Name of Destination Airport and Press Enter\n");
-    scanf("%s", cmpdestAirport);
-
-    fscanf(fPtr, "%d", &fpassPtr->flightCode);
-    fscanf(fPtr, "%s", fpassPtr->airlines);
-    fscanf(fPtr, "%s", fpassPtr->depAirport);
-    fscanf(fPtr, "%s", fpassPtr->destAirport);
-    fscanf(fPtr, "%f", &fpassPtr->timeOfDep);
-    fscanf(fPtr, "%f", &fpassPtr->timeOfDest);
-    fscanf(fPtr, "%d", &fpassPtr->passengerCapacity);
-
-    FILE *afPtr;
-
-    if ((afPtr = fopen("t_avFlights.txt", "w")) == NULL)
-    {
-        printf("%s", "An error occured!");
-    }
-
-    afPtr = fopen("t_avFlights.txt", "w");
-    int *iPtr, i = 1;
-    iPtr = &i;
-
-    while (!feof(fPtr))
-    {
-
-        if ((strcmp(cmpdepAirport, fpassPtr->depAirport) == 0) && (strcmp(cmpdestAirport, fpassPtr->destAirport) == 0))
-        {
-            fprintf(afPtr, "%d %s %s %s %.2f %.2f %d\n", fpassPtr->flightCode, fpassPtr->airlines, fpassPtr->depAirport,
-                    fpassPtr->destAirport, fpassPtr->timeOfDep, fpassPtr->timeOfDest, fpassPtr->passengerCapacity);            
-            
-            printf("%d %d %s %s %s %.2f %.2f %d\n", i, fpassPtr->flightCode, fpassPtr->airlines, fpassPtr->depAirport,
-                   fpassPtr->destAirport, fpassPtr->timeOfDep, fpassPtr->timeOfDest, fpassPtr->passengerCapacity);
-
-            *iPtr += 1;
-        }
+        printf("%s", "Please Enter the Name of Departure Airport and Press Enter\n");
+        scanf("%s", cmpdepAirport);
+        printf("\n%s", "Please Enter the Name of Destination Airport and Press Enter\n");
+        scanf("%s", cmpdestAirport);
 
         fscanf(fPtr, "%d", &fpassPtr->flightCode);
         fscanf(fPtr, "%s", fpassPtr->airlines);
@@ -640,14 +665,49 @@ void listPassFlight()
         fscanf(fPtr, "%f", &fpassPtr->timeOfDep);
         fscanf(fPtr, "%f", &fpassPtr->timeOfDest);
         fscanf(fPtr, "%d", &fpassPtr->passengerCapacity);
-    }
-    fclose(fPtr);
-    fclose(afPtr);
 
-    if (i == 1)
-    {
-        printf("%s", "No flight found suitable for your preferences!");
-        // return showAdminMenu gibi bir şey gelecek
+        FILE *afPtr;
+
+        if ((afPtr = fopen("t_avFlights.txt", "w")) == NULL)
+        {
+            printf("%s", "An error occured!");
+        }
+        else
+        {   int *iPtr, i = 1;
+            iPtr = &i;
+
+            while (!feof(fPtr))
+            {
+
+                if ((strcmp(cmpdepAirport, fpassPtr->depAirport) == 0) && (strcmp(cmpdestAirport, fpassPtr->destAirport) == 0))
+                {
+                    fprintf(afPtr, "%d %s %s %s %.2f %.2f %d\n", fpassPtr->flightCode, fpassPtr->airlines, fpassPtr->depAirport,
+                    fpassPtr->destAirport, fpassPtr->timeOfDep, fpassPtr->timeOfDest, fpassPtr->passengerCapacity);
+
+                    printf("%d %d %s %s %s %.2f %.2f %d\n", i, fpassPtr->flightCode, fpassPtr->airlines, fpassPtr->depAirport,
+                   fpassPtr->destAirport, fpassPtr->timeOfDep, fpassPtr->timeOfDest, fpassPtr->passengerCapacity);
+
+                    *iPtr += 1;
+                }
+
+                fscanf(fPtr, "%d", &fpassPtr->flightCode);
+                fscanf(fPtr, "%s", fpassPtr->airlines);
+                fscanf(fPtr, "%s", fpassPtr->depAirport);
+                fscanf(fPtr, "%s", fpassPtr->destAirport);
+                fscanf(fPtr, "%f", &fpassPtr->timeOfDep);
+                fscanf(fPtr, "%f", &fpassPtr->timeOfDest);
+                fscanf(fPtr, "%d", &fpassPtr->passengerCapacity);
+            } 
+
+            if (i == 1)
+            {
+                printf("%s", "No flight found suitable for your preferences!");
+                // return showAdminMenu gibi bir şey gelecek
+            }
+
+            fclose(fPtr);
+            fclose(afPtr);
+        }
     }
 }
 
@@ -667,76 +727,75 @@ void bookPassFlight()
         printf("%s", "An error occured!");
         //return mainmenu
     }
+    else
+    {   
+        Booking *bInfoPtr, bookingInfo;
+        bInfoPtr = &bookingInfo;
 
-    Booking *bInfoPtr, bookingInfo;
-    bInfoPtr = &bookingInfo;
+        fscanf(afPtr, "%d", &bInfoPtr->flightCode);
+        fscanf(afPtr, "%s", bInfoPtr->airlines);
+        fscanf(afPtr, "%s", bInfoPtr->depAirport);
+        fscanf(afPtr, "%s", bInfoPtr->destAirport);
+        fscanf(afPtr, "%f", &bInfoPtr->timeOfDep);
+        fscanf(afPtr, "%f", &bInfoPtr->timeOfDest);
+        fscanf(afPtr, "%d", &bInfoPtr->passengerCapacity);
 
-    afPtr = fopen("t_avFlights.txt", "r");
+        int *iPtr, i = 1; //It is an indexer for determining subscript of flightInfo[]
+        iPtr = &i;
 
-    fscanf(afPtr, "%d", &bInfoPtr->flightCode);
-    fscanf(afPtr, "%s", bInfoPtr->airlines);
-    fscanf(afPtr, "%s", bInfoPtr->depAirport);
-    fscanf(afPtr, "%s", bInfoPtr->destAirport);
-    fscanf(afPtr, "%f", &bInfoPtr->timeOfDep);
-    fscanf(afPtr, "%f", &bInfoPtr->timeOfDest);
-    fscanf(afPtr, "%d", &bInfoPtr->passengerCapacity);
-
-    int *iPtr, i = 1; //It is an indexer for determining subscript of flightInfo[]
-    iPtr = &i;
-
-    while (!feof(afPtr))
-    {
-        if (passPref == bInfoPtr->flightCode)
+        while (!feof(afPtr))
         {
-            *iPtr += 1;
+            if (passPref == bInfoPtr->flightCode)
+            {
+                *iPtr += 1;
+            }
+
+            fscanf(afPtr, "%d", &bInfoPtr->flightCode);
+            fscanf(afPtr, "%s", bInfoPtr->airlines);
+            fscanf(afPtr, "%s", bInfoPtr->depAirport);
+            fscanf(afPtr, "%s", bInfoPtr->destAirport);
+            fscanf(afPtr, "%f", &bInfoPtr->timeOfDep);
+            fscanf(afPtr, "%f", &bInfoPtr->timeOfDest);
+            fscanf(afPtr, "%d", &bInfoPtr->passengerCapacity);
         }
 
-    fscanf(afPtr, "%d", &bInfoPtr->flightCode);
-    fscanf(afPtr, "%s", bInfoPtr->airlines);
-    fscanf(afPtr, "%s", bInfoPtr->depAirport);
-    fscanf(afPtr, "%s", bInfoPtr->destAirport);
-    fscanf(afPtr, "%f", &bInfoPtr->timeOfDep);
-    fscanf(afPtr, "%f", &bInfoPtr->timeOfDest);
-    fscanf(afPtr, "%d", &bInfoPtr->passengerCapacity);
-    }
-
-    fclose(afPtr);
-    remove("t_avFlights.txt");
-
-    if (i == 2)
-    {
-        printf("\n%s\n", "Please enter your name and surname:");
-        scanf("%30s", bInfoPtr->name);
-
-        printf("\n%s\n", "Please enter your ID number:");
-        scanf("%11llu", &bInfoPtr->personalId);
-
-        bInfoPtr->seatNumber = rand() % 100;
-
-        srand(time(NULL));
-        bInfoPtr->bookingId = rand() % 100000;
-
-        FILE *bookingfPtr;
-
-        if ((bookingfPtr = fopen("PassengerBookingInfo.txt", "a")) == NULL)
+        fclose(afPtr);
+        remove("t_avFlights.txt");
+    
+        if (i == 2)
         {
-            printf("%s", "An error occured!");
-            //return mainmenu
-        }
-        
-        bookingfPtr = fopen("PassengerBookingInfo.txt", "a");
+            printf("\n%s\n", "Please enter your name and surname:");
+            scanf("%30s", bInfoPtr->name);
 
-        fprintf(bookingfPtr, "%s %11llu %d %d %ld %s %s %s %.2f %.2f\n", bInfoPtr->name, bInfoPtr->personalId, bInfoPtr->seatNumber,
-                bInfoPtr->bookingId, bInfoPtr->flightCode, bInfoPtr->airlines, bInfoPtr->depAirport, 
+            printf("\n%s\n", "Please enter your ID number:");
+            scanf("%11llu", &bInfoPtr->personalId);
+
+            bInfoPtr->seatNumber = rand() % 100;
+
+            srand(time(NULL));
+            bInfoPtr->bookingId = rand() % 100000;
+
+            FILE *bookingfPtr;
+
+            if ((bookingfPtr = fopen("PassengerBookingInfo.txt", "a")) == NULL)
+            {
+                printf("%s", "An error occured!");
+                //return mainmenu
+            }
+            else
+            {  
+                fprintf(bookingfPtr, "%s %11llu %d %d %ld %s %s %s %.2f %.2f\n", bInfoPtr->name, bInfoPtr->personalId, bInfoPtr->seatNumber,
+                bInfoPtr->bookingId, bInfoPtr->flightCode, bInfoPtr->airlines, bInfoPtr->depAirport,
                 bInfoPtr->destAirport, bInfoPtr->timeOfDep, bInfoPtr->timeOfDest);
 
-        fclose(bookingfPtr);
+                fclose(bookingfPtr);
 
-        printf("\n%s\t%d\n%s\n", "Thank You for Choosing SATOSHI's AIRPORT! Your Booking Code is:", bInfoPtr->bookingId,
+                printf("\n%s\t%d\n%s\n", "Thank You for Choosing SATOSHI's AIRPORT! Your Booking Code is:", bInfoPtr->bookingId,
                "You can cancel your booking by using your booking code!");
-    }
+            }
+        }
+    }    
 }
-
 
 void listPassBooking()
 {
@@ -760,63 +819,193 @@ void listPassBooking()
         printf("%s", "An error occured!");
         //return passengermenu
     }
-
-    bookingfPtr = fopen("PassengerBookingInfo.txt", "r+"); // passbPtr pointer is assigned as file pointer
-    Booking *bInfoPtr, bookingInfo; //This variable and pointer is used for receiving booking informations (except fligt informations) from "Passenger Booking Info.txt" file
-    bInfoPtr = &bookingInfo;
-
-    // This fscanf line reads booking informations (except fligt informations) of passenger from the "Passenger Booking Info.txt" file
-    fscanf(bookingfPtr, "%s", bInfoPtr->name);
-    fscanf(bookingfPtr,"%llu", &bInfoPtr->personalId);
-    fscanf(bookingfPtr,"%d",&bInfoPtr->seatNumber);
-    fscanf(bookingfPtr,"%d",&bInfoPtr->bookingId);
-    fscanf(bookingfPtr,"%d",&bInfoPtr->flightCode);
-    fscanf(bookingfPtr,"%s",bInfoPtr->airlines);
-    fscanf(bookingfPtr,"%s",bInfoPtr->depAirport);
-    fscanf(bookingfPtr,"%s",bInfoPtr->destAirport);
-    fscanf(bookingfPtr,"%f",&bInfoPtr->timeOfDep);
-    fscanf(bookingfPtr,"%f",&bInfoPtr->timeOfDest);
-
-    printf("%s\n\n", "Informations about your booking records as shown below:"); //This header will be prompted before displaying booking records
-
-    int *iPtr, i = 1;
-    iPtr = &i;
-
-    /*While statement is used for displaying matched booking records. Statement investigates if there is any match between given 
-    passenger name - ID and scanned name - ID from "Passenger Booking Info.txt" file.*/
-    while (!feof(bookingfPtr))
+    else
     {
-        /* If given name-ID are matched with previously scanned name-ID of booking record from "Passenger Booking Info.txt" file, then display 
-        the scanned booking record */
-        if ((strcmp(passName, bInfoPtr->name) == 0) && (passId == bookingInfo.personalId))
-        {
-            printf("%s %llu %d %d %d %s %s %s %.2f %.2f\n", bInfoPtr->name, bInfoPtr->personalId, bInfoPtr->seatNumber,
-               bInfoPtr->bookingId, bInfoPtr->flightCode, bInfoPtr->airlines, bInfoPtr->depAirport, bInfoPtr->destAirport, 
-               bInfoPtr->timeOfDep, bInfoPtr->timeOfDest);
+        Booking *bInfoPtr, bookingInfo; //This variable and pointer is used for receiving booking informations (except fligt informations) from "Passenger Booking Info.txt" file
+        bInfoPtr = &bookingInfo;
 
-            *iPtr += 1;
-        }
-
-   
-        /* This section is used for if there is no match between given name-ID and previously scanned name-ID of booking record, then 
-        reading another booking record from "Passenger Booking Info.txt" file. After that matching test repeats */
+        // This fscanf line reads booking informations (except fligt informations) of passenger from the "Passenger Booking Info.txt" file
         fscanf(bookingfPtr, "%s", bInfoPtr->name);
-        fscanf(bookingfPtr,"%llu",&bInfoPtr->personalId);
-        fscanf(bookingfPtr,"%d",&bInfoPtr->seatNumber);
-        fscanf(bookingfPtr,"%d",&bInfoPtr->bookingId);
-        fscanf(bookingfPtr,"%d",&bInfoPtr->flightCode);
-        fscanf(bookingfPtr,"%s",bInfoPtr->airlines);
-        fscanf(bookingfPtr,"%s",bInfoPtr->depAirport);
-        fscanf(bookingfPtr,"%s",bInfoPtr->destAirport);
-        fscanf(bookingfPtr,"%f",&bInfoPtr->timeOfDep);
-        fscanf(bookingfPtr,"%f",&bInfoPtr->timeOfDest);
-    }
-    fclose(bookingfPtr); //After read all booking records and finished the matching tests, this line closes the "Passenger Booking Info.txt" file
+        fscanf(bookingfPtr, "%llu", &bInfoPtr->personalId);
+        fscanf(bookingfPtr, "%d", &bInfoPtr->seatNumber);
+        fscanf(bookingfPtr, "%d", &bInfoPtr->bookingId);
+        fscanf(bookingfPtr, "%d", &bInfoPtr->flightCode);
+        fscanf(bookingfPtr, "%s", bInfoPtr->airlines);
+        fscanf(bookingfPtr, "%s", bInfoPtr->depAirport);
+        fscanf(bookingfPtr, "%s", bInfoPtr->destAirport);
+        fscanf(bookingfPtr, "%f", &bInfoPtr->timeOfDep);
+        fscanf(bookingfPtr, "%f", &bInfoPtr->timeOfDest);
 
-    //If there is not any match, a message will be prompted as below
-    if (i == 1)
-    {
-        printf("%s", "You have no current booking available. Would you like to book a flight?");
-        //BURAYA BOOKPASSFLİGHT FONKS RETURN YAPILABİLİR
+        printf("%s\n\n", "Informations about your booking records as shown below:"); //This header will be prompted before displaying booking records
+
+        int *iPtr, i = 1;
+        iPtr = &i;
+
+        /*While statement is used for displaying matched booking records. Statement investigates if there is any match between given 
+        passenger name - ID and scanned name - ID from "Passenger Booking Info.txt" file.*/
+        while (!feof(bookingfPtr))
+        {
+            /* If given name-ID are matched with previously scanned name-ID of booking record from "Passenger Booking Info.txt" file, then display 
+            the scanned booking record */
+            if ((strcmp(passName, bInfoPtr->name) == 0) && (passId == bookingInfo.personalId))
+            {
+                printf("%s %llu %d %d %d %s %s %s %.2f %.2f\n", bInfoPtr->name, bInfoPtr->personalId, bInfoPtr->seatNumber,
+                       bInfoPtr->bookingId, bInfoPtr->flightCode, bInfoPtr->airlines, bInfoPtr->depAirport, bInfoPtr->destAirport,
+                       bInfoPtr->timeOfDep, bInfoPtr->timeOfDest);
+
+                *iPtr += 1;
+            }
+
+            /* This section is used for if there is no match between given name-ID and previously scanned name-ID of booking record, then 
+            reading another booking record from "Passenger Booking Info.txt" file. After that matching test repeats */
+            fscanf(bookingfPtr, "%s", bInfoPtr->name);
+            fscanf(bookingfPtr, "%llu", &bInfoPtr->personalId);
+            fscanf(bookingfPtr, "%d", &bInfoPtr->seatNumber);
+            fscanf(bookingfPtr, "%d", &bInfoPtr->bookingId);
+            fscanf(bookingfPtr, "%d", &bInfoPtr->flightCode);
+            fscanf(bookingfPtr, "%s", bInfoPtr->airlines);
+            fscanf(bookingfPtr, "%s", bInfoPtr->depAirport);
+            fscanf(bookingfPtr, "%s", bInfoPtr->destAirport);
+            fscanf(bookingfPtr, "%f", &bInfoPtr->timeOfDep);
+            fscanf(bookingfPtr, "%f", &bInfoPtr->timeOfDest);
+        }
+        fclose(bookingfPtr); //After read all booking records and finished the matching tests, this line closes the "Passenger Booking Info.txt" file
+
+        //If there is not any match, a message will be prompted as below
+        if (i == 1)
+        {
+            printf("%s", "You have no current booking available. Would you like to book a flight?");
+            //BURAYA BOOKPASSFLİGHT FONKS RETURN YAPILABİLİR
+        }
     }
+}
+
+void deletePassBooking()
+{
+    int bookingId; // It is used for receiving the ID of passenger
+
+    //This section receives the name-surname and ID number of passenger for checking the booking records
+    printf("%s\n", "Please enter your booking code");
+    scanf("%5d", &bookingId);
+
+    /* Commonly used pointers' and variables' name are declared below. This time they are used for receiving booking and flight informations 
+    from "Passenger Booking Info.txt" */
+
+    FILE *bookingfPtr;  //Commonly used file pointer of "Passenger Booking Info.txt" file
+    FILE *tbookingfPtr; //Commonly used file pointer of "Passenger Booking Info.txt" file
+
+    // If the program fails reading "Passenger Booking Info.txt" for any reason, an error message will be prompted to the screen before returning to the passenger menu
+    if ((bookingfPtr = fopen("PassengerBookingInfo.txt", "r")) == NULL)
+    {
+        printf("%s", "An error occured!");
+        //return passengermenu
+    }
+    else
+    { // If the program fails reading "Passenger Booking Info.txt" for any reason, an error message will be prompted to the screen before returning to the passenger menu
+        if ((tbookingfPtr = fopen("t_PassengerBookingInfo.txt", "w")) == NULL)
+        {
+            printf("%s", "An error occured!");
+            //return passengermenu
+        }
+        else
+        {
+            Booking *bInfoPtr, bookingInfo; //This variable and pointer is used for receiving booking informations (except fligt informations) from "Passenger Booking Info.txt" file
+            bInfoPtr = &bookingInfo;
+
+            // This fscanf line reads booking informations (except fligt informations) of passenger from the "Passenger Booking Info.txt" file
+            fscanf(bookingfPtr, "%s", bInfoPtr->name);
+            fscanf(bookingfPtr, "%llu", &bInfoPtr->personalId);
+            fscanf(bookingfPtr, "%d", &bInfoPtr->seatNumber);
+            fscanf(bookingfPtr, "%d", &bInfoPtr->bookingId);
+            fscanf(bookingfPtr, "%d", &bInfoPtr->flightCode);
+            fscanf(bookingfPtr, "%s", bInfoPtr->airlines);
+            fscanf(bookingfPtr, "%s", bInfoPtr->depAirport);
+            fscanf(bookingfPtr, "%s", bInfoPtr->destAirport);
+            fscanf(bookingfPtr, "%f", &bInfoPtr->timeOfDep);
+            fscanf(bookingfPtr, "%f", &bInfoPtr->timeOfDest);
+
+            int *iPtr, i = 1;
+            iPtr = &i;
+
+            while (!feof(bookingfPtr))
+            {
+                /* If given name-ID are matched with previously scanned name-ID of booking record from "Passenger Booking Info.txt" file, then display 
+            the scanned booking record */
+                if (bookingId != bookingInfo.bookingId)
+                {
+                    fprintf(tbookingfPtr, "%s %llu %d %d %d %s %s %s %.2f %.2f\n", bInfoPtr->name, bInfoPtr->personalId, bInfoPtr->seatNumber,
+                            bInfoPtr->bookingId, bInfoPtr->flightCode, bInfoPtr->airlines, bInfoPtr->depAirport, bInfoPtr->destAirport,
+                            bInfoPtr->timeOfDep, bInfoPtr->timeOfDest);
+                }
+
+                if (bookingId == bookingInfo.bookingId)
+                {
+                    *iPtr += 1;
+                }
+
+                /* This section is used for if there is no match between given name-ID and previously scanned name-ID of booking record, then 
+                reading another booking record from "Passenger Booking Info.txt" file. After that matching test repeats */
+                fscanf(bookingfPtr, "%s", bInfoPtr->name);
+                fscanf(bookingfPtr, "%llu", &bInfoPtr->personalId);
+                fscanf(bookingfPtr, "%d", &bInfoPtr->seatNumber);
+                fscanf(bookingfPtr, "%d", &bInfoPtr->bookingId);
+                fscanf(bookingfPtr, "%d", &bInfoPtr->flightCode);
+                fscanf(bookingfPtr, "%s", bInfoPtr->airlines);
+                fscanf(bookingfPtr, "%s", bInfoPtr->depAirport);
+                fscanf(bookingfPtr, "%s", bInfoPtr->destAirport);
+                fscanf(bookingfPtr, "%f", &bInfoPtr->timeOfDep);
+                fscanf(bookingfPtr, "%f", &bInfoPtr->timeOfDest);
+            }
+            fclose(bookingfPtr); //After read all booking records and finished the matching tests, this line closes the "Passenger Booking Info.txt" file
+            fclose(tbookingfPtr);
+
+            if (i == 1)
+            {
+                printf("There is no booking to delete according to booking code that you entered!");
+                //return mainmenu tarzı bir şey gelecek
+            }
+            else
+            {
+                printf("Your booking was successfully cancelled!");
+            }
+        }
+    }
+    remove("PassengerBookingInfo.txt");
+    rename("t_PassengerBookingInfo.txt", "PassengerBookingInfo.txt");
+}
+
+int showPassMenu()
+{
+    int choice;
+    printf("%s\n", "Welcome our passenger service! Please choose one of options below.");
+    printf("1. Book a Flight\n");
+    printf("2. List my Flights\n");
+    printf("3. Cancel my flight\n");
+    printf("0. Exit from the program\n");
+    printf("\nPlease make your login option: ");
+    scanf("%d", &choice);
+
+    switch (choice)
+    {
+        case 1:
+        bookPassFlight();
+        break;
+
+        case 2:
+        listPassBooking();
+        break;
+
+        case 3:
+        deletePassBooking();
+        break;
+
+        case 0:
+        printf("\nThe program has successfully closed.\nSEE YOU LATER!\n");
+        break;
+
+        default:
+        printf("\n%s","!!!!! An error occurred");
+        break;
+    }
+    return 0;
 }
