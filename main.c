@@ -42,6 +42,8 @@ int listFlights();
 void deleteFlight();
 // function that edits the chosen flight
 void editFlight();
+// function that list bookings
+void listBookings();
 
 // structs that we used in our program
 
@@ -58,14 +60,20 @@ typedef struct _Flight
     int passengerCapacity;             // passenger capacities of the planes
 } Flight;
 
-// a structuro of the bookings that passengers recorded
 typedef struct _Booking
 {
-    char name[NAME_LENGTH]; // a string array to keep passengers names
-    int personalId;         // a variable to keep the passengers personal ID
-    int seatNumber;         // a variable to keep seat data of booking
-    int bookingId;          // a variable to keep assigned booking ID to passengers
-    Flight flightInfo;      // flight data of the bookings
+    char name[NAME_LENGTH];            // a string array to keep passengers names
+    char surname[NAME_LENGTH];         // a string array to keep passengers surnames
+    unsigned long long int personalId; // a variable to keep the passengers personal ID
+    int seatNumber;                    // a variable to keep seat data of booking
+    int bookingId;                     // a variable to keep assigned booking ID to passengers
+    int flightCode;                    // between 1111 - 9999
+    char airlines[AIR_NAME_LENGTH];    // the maximum length of the airport and airlines names' strings are being controlled by "AIR_NAME_LENGTH" macro
+    char depAirport[AIR_NAME_LENGTH];  // the maximum length of the airport and airlines names' strings are being controlled by "AIR_NAME_LENGTH" macro
+    char destAirport[AIR_NAME_LENGTH]; // the maximum length of the airport and airlines names' strings are being controlled by "AIR_NAME_LENGTH" macro
+    float timeOfDep;                   // "HH.MM" format : time of departure
+    float timeOfDest;                  // "HH.MM" format : time of destination
+    int passengerCapacity;             // passenger capacities of the planes
 } Booking;
 
 int main()
@@ -274,6 +282,7 @@ int adminLogin()
                 break;
             // listing bookings
             case 5:
+                listBookings();
                 break;
             // changing password option
             case 6:
@@ -371,9 +380,9 @@ void addFlight()
     printf("\nPlease enter the capacity of the plane: ");
     scanf("%d", &nfPtr->passengerCapacity);
 
-    // open the file, handle the inputted information and close
+    // open the file, handle the inputted information and close (recording all string as uppercase to preventing unmatches about casing)
     flPtr = fopen("flights.txt", "a");
-    fprintf(flPtr, "%d %s %s %s %.2f %.2f %d\n", nfPtr->flightCode, nfPtr->airlines, nfPtr->depAirport, nfPtr->destAirport, nfPtr->timeOfDep, nfPtr->timeOfDest, nfPtr->passengerCapacity);
+    fprintf(flPtr, "%d %s %s %s %.2f %.2f %d\n", nfPtr->flightCode, strupr(nfPtr->airlines), strupr(nfPtr->depAirport), strupr(nfPtr->destAirport), nfPtr->timeOfDep, nfPtr->timeOfDest, nfPtr->passengerCapacity);
     printf("\n The flight has recorded succesfully...\n");
     fclose(flPtr);
 }
@@ -619,5 +628,80 @@ void editFlight()
         // after the deleting and copying process, delete the main file database and make the temporary file, main file
         remove("flights.txt");
         rename("t_flights.txt", "flights.txt");
+    }
+}
+
+// a function to list current bookings
+void listBookings()
+{
+    design(); // designing
+
+    FILE *flPtr; // pointer for flights file database
+
+    FILE *tflPtr;                                     // pointer for temporary flight database handler
+    tflPtr = fopen("PassengerBookingInfo.txt ", "r"); // opening file to check does it exist
+
+    // create file database if does not exist to prevent errors
+    if (tflPtr == NULL)
+    {
+        flPtr = fopen("PassengerBookingInfo.txt", "w");
+        fclose(flPtr);
+    }
+    fclose(tflPtr); // closing the file that we opened to check
+
+    flPtr = fopen("PassengerBookingInfo.txt", "r"); // opening file database to read lines
+
+    Booking readBooking; // struct for placing the flight informations that have read
+    Booking *rbPtr;      // pointer to manage struct
+    rbPtr = &readBooking;
+
+    int counter = 1;
+
+    // reading the first records on the data
+    fscanf(flPtr, "%s", rbPtr->name);
+    fscanf(flPtr, "%s", rbPtr->surname);
+    fscanf(flPtr, "%ull", &rbPtr->personalId);
+    fscanf(flPtr, "%d", &rbPtr->seatNumber);
+    fscanf(flPtr, "%d", &rbPtr->bookingId);
+    fscanf(flPtr, "%d", &rbPtr->flightCode);
+    fscanf(flPtr, "%s", rbPtr->airlines);
+    fscanf(flPtr, "%s", rbPtr->depAirport);
+    fscanf(flPtr, "%s", rbPtr->destAirport);
+    fscanf(flPtr, "%f", &rbPtr->timeOfDep);
+    fscanf(flPtr, "%f", &rbPtr->timeOfDest);
+    fscanf(flPtr, "%d", &rbPtr->passengerCapacity);
+
+    // keep reading data from the file while not end of the file then print them
+    while (!feof(flPtr))
+    {
+        printf("%2d- %s %s %ull %d %d %d %s %s %s %.2f %.2f %d\n", counter, rbPtr->name, rbPtr->surname, rbPtr->personalId, rbPtr->seatNumber, rbPtr->bookingId, rbPtr->flightCode, rbPtr->airlines, rbPtr->depAirport, rbPtr->destAirport, rbPtr->timeOfDep, rbPtr->timeOfDest, rbPtr->passengerCapacity);
+        fscanf(flPtr, "%s", rbPtr->name);
+        fscanf(flPtr, "%s", rbPtr->surname);
+        fscanf(flPtr, "%ull", &rbPtr->personalId);
+        fscanf(flPtr, "%d", &rbPtr->seatNumber);
+        fscanf(flPtr, "%d", &rbPtr->bookingId);
+        fscanf(flPtr, "%d", &rbPtr->flightCode);
+        fscanf(flPtr, "%s", rbPtr->airlines);
+        fscanf(flPtr, "%s", rbPtr->depAirport);
+        fscanf(flPtr, "%s", rbPtr->destAirport);
+        fscanf(flPtr, "%f", &rbPtr->timeOfDep);
+        fscanf(flPtr, "%f", &rbPtr->timeOfDest);
+        fscanf(flPtr, "%d", &rbPtr->passengerCapacity);
+        counter++; //increment counter
+    }
+
+    fclose(flPtr); // close the file
+
+    if (counter == 1)
+    {
+        printf("There are not any booking records!");
+
+        // show that there are any records
+        return 0;
+    }
+    else
+    {
+        //show that there are records
+        return 1;
     }
 }
