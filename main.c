@@ -9,7 +9,6 @@ Serdar Yaşar - 010190077
 #include <stdio.h>
 #include <conio.h>  // included this library to take getch() function to keep console window opened at the end of the program
 #include <string.h> // included this library to use string functions
-#include <time.h>
 
 #define AIR_NAME_LENGTH 20 // the maximum length of the airport and airlines names' strings are being controlled by "AIR_NAME_LENGTH" macro
 #define PASSWORD_LENGTH 20 // the maximum length of the adminstrator passwords is being controlled by "PASSWORD_LENGTH" macro
