@@ -15,49 +15,52 @@ Serdar Yaşar - 010190077
 #define AIR_NAME_LENGTH 20 // the maximum length of the airport and airlines names' strings are being controlled by "AIR_NAME_LENGTH" macro
 #define PASSWORD_LENGTH 20 // the maximum length of the adminstrator passwords is being controlled by "PASSWORD_LENGTH" macro
 #define NAME_LENGTH 30     // the maximum length of the name is being controlled by "NAME_LENGTH" macro
-#define SEAT_ROW 50 
+#define SEAT_ROW 50  //
 
 int globalBoolean = 1; // a global variable to control main loop
 
 // the function prototypes
 
-int isAdminSignedUp(); // check if adminstrator of the system signed up
-
-void createPassword(); // provide the sign up for the first time and make the password changes
-
-void showMainMenu(); // function that shows the main menu
-
-void design(); // menu switches designing function
-
-int showAdminMenu(); // function that shows the admin menu
-
-int adminLogin(); // function that provides log in by password check
-
-int generateFlightCode(); // generating flight codes for the flights
-
+// check if adminstrator of the system signed up
+int isAdminSignedUp();
+// provide the sign up for the first time and make the password changes
+void createPassword();
+// function that shows the main menu
+void showMainMenu();
+// menu switches designing function
+void design();
+// function that shows the admin menu
+int showAdminMenu();
+// function that provides log in by password check
+int adminLogin();
+// generating flight codes for the flights
+int generateFlightCode();
+//
 void seatOrder(int flightCode, int passengerCapacity); 
-
-void addFlight(); // function that records flights to file database
-
-int listFlights(); // function that lists and prints available flights
-
-void deleteFlight(); // function that deletes the chosen flight
-
-void editFlight(); // function that edits the chosen flight
-
-void listPassFlight(); //Function that lists available flights to passenger
-
-int bookingIdGenerator(); //Function that generates unique booking ID
-
+// function that records flights to file database
+void addFlight();
+// function that lists and prints available flights
+int listFlights();
+// function that deletes the chosen flight
+void deleteFlight();
+// function that edits the chosen flight
+void editFlight();
+// function that list bookings
+void listBookings();
+//Function that lists available flights to passenger
+void listPassFlight(); 
+//Function that generates unique booking ID
+int bookingIdGenerator();
+//
 void selectSeat(int flightCode, int passengerCapacity, char seatNumber[2]);
-
-void bookPassFlight(); //Function that creates booking record for passenger
-
-void listPassBooking(); //Function that lists booking records of passenger
-
-void deletePassBooking(); //Function that deletes booking record of passenger
-
-int showPassMenu(); //Function that show options menu for passenger
+//Function that creates booking record for passenger
+void bookPassFlight(); 
+//Function that lists booking records of passenger
+void listPassBooking(); 
+//Function that deletes booking record of passenger
+void deletePassBooking(); 
+//Function that show options menu for passenger
+int showPassMenu(); 
 
 // structs that we used in our program
 
@@ -95,8 +98,8 @@ typedef struct _Booking
     char depAirport[AIR_NAME_LENGTH];  // the maximum length of the airport and airlines names' strings are being controlled by "AIR_NAME_LENGTH" macro
     char destAirport[AIR_NAME_LENGTH]; // the maximum length of the airport and airlines names' strings are being controlled by "AIR_NAME_LENGTH" macro
     float timeOfDep;                   // "HH.MM" format : time of departure
-    float timeOfDest;
-    int passengerCapacity; // passenger capacities of the planes
+    float timeOfDest;                  // "HH.MM" format : time of destination
+    int passengerCapacity;             // passenger capacities of the planes
 } Booking;
 
 int main()
@@ -305,6 +308,7 @@ int adminLogin()
                 break;
             // listing bookings
             case 5:
+                listBookings();
                 break;
             // changing password option
             case 6:
@@ -433,12 +437,13 @@ void addFlight()
     printf("\nPlease enter the capacity of the plane: ");
     scanf("%d", &nfPtr->passengerCapacity);
 
-    // open the file, handle the inputted information and close
+    // open the file, handle the inputted information and close (recording all string as uppercase to preventing unmatches about casing)
     flPtr = fopen("flights.txt", "a");
-    fprintf(flPtr, "%d %s %s %s %.2f %.2f %d\n", nfPtr->flightCode, nfPtr->airlines, nfPtr->depAirport, nfPtr->destAirport, nfPtr->timeOfDep, nfPtr->timeOfDest, nfPtr->passengerCapacity);
+    fprintf(flPtr, "%d %s %s %s %.2f %.2f %d\n", nfPtr->flightCode, strupr(nfPtr->airlines), strupr(nfPtr->depAirport), strupr(nfPtr->destAirport), nfPtr->timeOfDep, nfPtr->timeOfDest, nfPtr->passengerCapacity);
     printf("\n The flight has recorded succesfully...\n");
     fclose(flPtr);
 
+    //
     seatOrder(nfPtr->flightCode, nfPtr->passengerCapacity);
 }
 
@@ -1216,4 +1221,148 @@ int showPassMenu()
         break;
     }
     return 0;
+
+        // read the file until the end of file database and record all of the flight to a temporary database except the one want to be deleted
+        while (!feof(flPtr))
+        {
+            // if the flight record that read is not one want to be edit, write it to the temporary file
+            if (counter != edited)
+            {
+                fprintf(tflPtr, "%d %s %s %s %.2f %.2f %d\n", efPtr->flightCode, efPtr->airlines, efPtr->depAirport, efPtr->destAirport, efPtr->timeOfDep, efPtr->timeOfDest, efPtr->passengerCapacity);
+                deleteChecker++; // increment on every passing index
+            }
+            else
+            {
+                //get inputs from the adminstrator about the data that adminstrator wanted to change
+                switch (type)
+                {
+                case 1:
+                    printf("\nPlese enter the new airlines of the flight: ");
+                    scanf("%s", &efPtr->airlines);
+                    break;
+                case 2:
+                    printf("\nPlese enter the new departure airport of the flight: ");
+                    scanf("%s", efPtr->depAirport);
+                    break;
+                case 3:
+                    printf("\nPlese enter the new destination airport of the flight: ");
+                    scanf("%s", efPtr->destAirport);
+                    break;
+                case 4:
+                    printf("\nPlese enter the new time of departure of the flight: ");
+                    scanf("%f", &efPtr->timeOfDep);
+                    break;
+                case 5:
+                    printf("\nPlese enter the new time of destination of the flight: ");
+                    scanf("%f", &efPtr->timeOfDest);
+                    break;
+                case 6:
+                    printf("\nPlese enter the capacity of the flight: ");
+                    scanf("%d", &efPtr->passengerCapacity);
+                    break;
+                default:
+                    printf("!!!!! An error occurred");
+                }
+                // then write the edited data to the temporary file database
+                fprintf(tflPtr, "%d %s %s %s %.2f %.2f %d\n", efPtr->flightCode, efPtr->airlines, efPtr->depAirport, efPtr->destAirport, efPtr->timeOfDep, efPtr->timeOfDest, efPtr->passengerCapacity);
+            }
+            fscanf(flPtr, "%d", &efPtr->flightCode);
+            fscanf(flPtr, "%s", efPtr->airlines);
+            fscanf(flPtr, "%s", efPtr->depAirport);
+            fscanf(flPtr, "%s", efPtr->destAirport);
+            fscanf(flPtr, "%f", &efPtr->timeOfDep);
+            fscanf(flPtr, "%f", &efPtr->timeOfDest);
+            fscanf(flPtr, "%d", &efPtr->passengerCapacity);
+
+            counter++;
+        }
+
+        // if the counter for the records and counter for the passed records are equal, it means any edit operation didn't happened
+        if (deleteChecker == counter)
+        {
+            printf("\n!!!!! An error occurred");
+        }
+
+        fclose(flPtr);  // close the file
+        fclose(tflPtr); // close the file
+
+        // after the deleting and copying process, delete the main file database and make the temporary file, main file
+        remove("flights.txt");
+        rename("t_flights.txt", "flights.txt");
+    }
+}
+
+// a function to list current bookings
+void listBookings()
+{
+    design(); // designing
+
+    FILE *flPtr; // pointer for flights file database
+
+    FILE *tflPtr;                                     // pointer for temporary flight database handler
+    tflPtr = fopen("PassengerBookingInfo.txt ", "r"); // opening file to check does it exist
+
+    // create file database if does not exist to prevent errors
+    if (tflPtr == NULL)
+    {
+        flPtr = fopen("PassengerBookingInfo.txt", "w");
+        fclose(flPtr);
+    }
+    fclose(tflPtr); // closing the file that we opened to check
+
+    flPtr = fopen("PassengerBookingInfo.txt", "r"); // opening file database to read lines
+
+    Booking readBooking; // struct for placing the flight informations that have read
+    Booking *rbPtr;      // pointer to manage struct
+    rbPtr = &readBooking;
+
+    int counter = 1;
+
+    // reading the first records on the data
+    fscanf(flPtr, "%s", rbPtr->name);
+    fscanf(flPtr, "%s", rbPtr->surname);
+    fscanf(flPtr, "%ull", &rbPtr->personalId);
+    fscanf(flPtr, "%d", &rbPtr->seatNumber);
+    fscanf(flPtr, "%d", &rbPtr->bookingId);
+    fscanf(flPtr, "%d", &rbPtr->flightCode);
+    fscanf(flPtr, "%s", rbPtr->airlines);
+    fscanf(flPtr, "%s", rbPtr->depAirport);
+    fscanf(flPtr, "%s", rbPtr->destAirport);
+    fscanf(flPtr, "%f", &rbPtr->timeOfDep);
+    fscanf(flPtr, "%f", &rbPtr->timeOfDest);
+    fscanf(flPtr, "%d", &rbPtr->passengerCapacity);
+
+    // keep reading data from the file while not end of the file then print them
+    while (!feof(flPtr))
+    {
+        printf("%2d- %s %s %ull %d %d %d %s %s %s %.2f %.2f %d\n", counter, rbPtr->name, rbPtr->surname, rbPtr->personalId, rbPtr->seatNumber, rbPtr->bookingId, rbPtr->flightCode, rbPtr->airlines, rbPtr->depAirport, rbPtr->destAirport, rbPtr->timeOfDep, rbPtr->timeOfDest, rbPtr->passengerCapacity);
+        fscanf(flPtr, "%s", rbPtr->name);
+        fscanf(flPtr, "%s", rbPtr->surname);
+        fscanf(flPtr, "%ull", &rbPtr->personalId);
+        fscanf(flPtr, "%d", &rbPtr->seatNumber);
+        fscanf(flPtr, "%d", &rbPtr->bookingId);
+        fscanf(flPtr, "%d", &rbPtr->flightCode);
+        fscanf(flPtr, "%s", rbPtr->airlines);
+        fscanf(flPtr, "%s", rbPtr->depAirport);
+        fscanf(flPtr, "%s", rbPtr->destAirport);
+        fscanf(flPtr, "%f", &rbPtr->timeOfDep);
+        fscanf(flPtr, "%f", &rbPtr->timeOfDest);
+        fscanf(flPtr, "%d", &rbPtr->passengerCapacity);
+        counter++; //increment counter
+    }
+
+    fclose(flPtr); // close the file
+
+    if (counter == 1)
+    {
+        printf("There are not any booking records!");
+
+        // show that there are any records
+        return 0;
+    }
+    else
+    {
+        //show that there are records
+        return 1;
+    }
 }
