@@ -15,6 +15,7 @@ Serdar Yaşar - 010190077
 #define AIR_NAME_LENGTH 20 // the maximum length of the airport and airlines names' strings are being controlled by "AIR_NAME_LENGTH" macro
 #define PASSWORD_LENGTH 20 // the maximum length of the adminstrator passwords is being controlled by "PASSWORD_LENGTH" macro
 #define NAME_LENGTH 30     // the maximum length of the name is being controlled by "NAME_LENGTH" macro
+#define SEAT_ROW 50 
 
 int globalBoolean = 1; // a global variable to control main loop
 
@@ -34,6 +35,8 @@ int adminLogin(); // function that provides log in by password check
 
 int generateFlightCode(); // generating flight codes for the flights
 
+void seatOrder(int flightCode, int passengerCapacity);
+
 void addFlight(); // function that records flights to file database
 
 int listFlights(); // function that lists and prints available flights
@@ -43,6 +46,10 @@ void deleteFlight(); // function that deletes the chosen flight
 void editFlight(); // function that edits the chosen flight
 
 void listPassFlight();
+
+int bookingIdGenerator();
+
+void selectSeat(int flightCode, int passengerCapacity, char seatNumber[2]);
 
 void bookPassFlight();
 
@@ -67,12 +74,21 @@ typedef struct _Flight
     int passengerCapacity;             // passenger capacities of the planes
 } Flight;
 
+typedef struct _Seat
+{
+    // "flight code, airlines, departure airport, destination airport, time of departure, time of destination and passenger capacity" records
+    int flightCode;                    // between 1111 - 9999
+    char seatTable[SEAT_ROW][6];
+
+}Seat;
+
 // a structuro of the bookings that passengers recorded
 typedef struct _Booking
 {
     char name[NAME_LENGTH];            // a string array to keep passengers names
+    char surname[NAME_LENGTH];
     unsigned long long int personalId; // a variable to keep the passengers personal ID
-    int seatNumber;                    // a variable to keep seat data of booking
+    char seatNumber[2];                    // a variable to keep seat data of booking
     int bookingId;                     // a variable to keep assigned booking ID to passengers
     int flightCode;                    // between 1111 - 9999
     char airlines[AIR_NAME_LENGTH];    // the maximum length of the airport and airlines names' strings are being controlled by "AIR_NAME_LENGTH" macro
@@ -349,6 +365,37 @@ int generateFlightCode()
     return ++firstFlightCode;
 }
 
+void seatOrder(int flightCode, int passengerCapacity)
+{
+    int rowConstant = passengerCapacity/6;
+    int i,j; //i satır j sütun için
+    Seat *seatInfoPtr, seatInfo;
+    seatInfoPtr = &seatInfo;
+
+    seatInfoPtr->flightCode = flightCode;
+    seatInfoPtr->seatTable[rowConstant][6];
+
+    for(i=0; i < rowConstant; i++)
+    {
+        for(j=0; j<=5; j++)
+        {
+            seatInfoPtr->seatTable[i][j] = '+';
+        }
+    }
+
+    FILE *seatfPtr;
+    
+    if ((seatfPtr = fopen("seatInfo.dat","wb"))==NULL)
+    {
+        printf("%s","File could not be opened!\n");
+    }
+    else
+    {
+        fwrite(seatInfoPtr, sizeof(Seat), 1, seatfPtr);
+        fclose(seatfPtr);
+    }
+}
+
 // a function to add flights by adminstrator to file database
 void addFlight()
 {
@@ -391,6 +438,8 @@ void addFlight()
     fprintf(flPtr, "%d %s %s %s %.2f %.2f %d\n", nfPtr->flightCode, nfPtr->airlines, nfPtr->depAirport, nfPtr->destAirport, nfPtr->timeOfDep, nfPtr->timeOfDest, nfPtr->passengerCapacity);
     printf("\n The flight has recorded succesfully...\n");
     fclose(flPtr);
+
+    seatOrder(nfPtr->flightCode, nfPtr->passengerCapacity);
 }
 
 // a function to list added flights from the file database
@@ -679,13 +728,13 @@ void listPassFlight()
             while (!feof(fPtr))
             {
 
-                if ((strcmp(cmpdepAirport, fpassPtr->depAirport) == 0) && (strcmp(cmpdestAirport, fpassPtr->destAirport) == 0))
+                if ((strcmp(strupr(cmpdepAirport), fpassPtr->depAirport) == 0) && (strcmp(strupr(cmpdestAirport), fpassPtr->destAirport) == 0))
                 {
                     fprintf(afPtr, "%d %s %s %s %.2f %.2f %d\n", fpassPtr->flightCode, fpassPtr->airlines, fpassPtr->depAirport,
                     fpassPtr->destAirport, fpassPtr->timeOfDep, fpassPtr->timeOfDest, fpassPtr->passengerCapacity);
 
                     printf("%d %d %s %s %s %.2f %.2f %d\n", i, fpassPtr->flightCode, fpassPtr->airlines, fpassPtr->depAirport,
-                   fpassPtr->destAirport, fpassPtr->timeOfDep, fpassPtr->timeOfDest, fpassPtr->passengerCapacity);
+                    fpassPtr->destAirport, fpassPtr->timeOfDep, fpassPtr->timeOfDest, fpassPtr->passengerCapacity);
 
                     *iPtr += 1;
                 }
@@ -710,6 +759,7 @@ void listPassFlight()
         }
     }
 }
+
 
 void bookPassFlight()
 {
@@ -764,16 +814,18 @@ void bookPassFlight()
     
         if (i == 2)
         {
-            printf("\n%s\n", "Please enter your name and surname:");
+            printf("\n%s\n", "Please enter your name:");
             scanf("%30s", bInfoPtr->name);
+
+            printf("\n%s\n", "Please enter your surname:");
+            scanf("%30s", bInfoPtr->surname);
 
             printf("\n%s\n", "Please enter your ID number:");
             scanf("%11llu", &bInfoPtr->personalId);
 
-            bInfoPtr->seatNumber = rand() % 100;
-
-            srand(time(NULL));
-            bInfoPtr->bookingId = rand() % 100000;
+            selectSeat(bInfoPtr->flightCode, bInfoPtr->passengerCapacity, bInfoPtr->seatNumber);
+            
+            bInfoPtr->bookingId = bookingIdGenerator();
 
             FILE *bookingfPtr;
 
@@ -783,10 +835,10 @@ void bookPassFlight()
                 //return mainmenu
             }
             else
-            {  
-                fprintf(bookingfPtr, "%s %11llu %d %d %ld %s %s %s %.2f %.2f\n", bInfoPtr->name, bInfoPtr->personalId, bInfoPtr->seatNumber,
-                bInfoPtr->bookingId, bInfoPtr->flightCode, bInfoPtr->airlines, bInfoPtr->depAirport,
-                bInfoPtr->destAirport, bInfoPtr->timeOfDep, bInfoPtr->timeOfDest);
+            {   
+                fprintf(bookingfPtr, "%s %s %11llu %d %d %ld %s %s %s %.2f %.2f\n", strupr(bInfoPtr->name), strupr(bInfoPtr->surname), 
+                bInfoPtr->personalId, bInfoPtr->seatNumber, bInfoPtr->bookingId, bInfoPtr->flightCode, strupr(bInfoPtr->airlines), 
+                strupr(bInfoPtr->depAirport), strupr(bInfoPtr->destAirport), bInfoPtr->timeOfDep, bInfoPtr->timeOfDest);
 
                 fclose(bookingfPtr);
 
@@ -797,14 +849,141 @@ void bookPassFlight()
     }    
 }
 
+
+int bookingIdGenerator()
+{
+    int generatedId;
+    
+    srand(time(NULL));
+    generatedId = 10000 + rand() % 89999;
+
+    Booking *bInfoPtr, bookingInfo; //This variable and pointer is used for receiving booking informations (except fligt informations) from "Passenger Booking Info.txt" file
+    bInfoPtr = &bookingInfo;
+    FILE *bookingfPtr;
+
+    if ((bookingfPtr = fopen("PassengerBookingInfo.txt", "r")) == NULL)
+    {
+        printf("%s", "An error occured!");
+    }
+    else
+    {
+        fscanf(bookingfPtr, "%s", bInfoPtr->name);
+        fscanf(bookingfPtr, "%s", bInfoPtr->surname);
+        fscanf(bookingfPtr, "%llu", &bInfoPtr->personalId);
+        fscanf(bookingfPtr, "%d", bInfoPtr->seatNumber);
+        fscanf(bookingfPtr, "%d", &bInfoPtr->bookingId);
+        fscanf(bookingfPtr, "%d", &bInfoPtr->flightCode);
+        fscanf(bookingfPtr, "%s", bInfoPtr->airlines);
+        fscanf(bookingfPtr, "%s", bInfoPtr->depAirport);
+        fscanf(bookingfPtr, "%s", bInfoPtr->destAirport);
+        fscanf(bookingfPtr, "%f", &bInfoPtr->timeOfDep);
+        fscanf(bookingfPtr, "%f", &bInfoPtr->timeOfDest);
+
+        while (!feof(bookingfPtr))
+        {
+            if (generatedId == bInfoPtr->bookingId)
+            {
+                generatedId = 10000 + rand() % 89999;
+            }
+        
+            fscanf(bookingfPtr, "%s", bInfoPtr->name);
+            fscanf(bookingfPtr, "%s", bInfoPtr->surname);
+            fscanf(bookingfPtr, "%llu", &bInfoPtr->personalId);
+            fscanf(bookingfPtr, "%d", bInfoPtr->seatNumber);
+            fscanf(bookingfPtr, "%d", &bInfoPtr->bookingId);
+            fscanf(bookingfPtr, "%d", &bInfoPtr->flightCode);
+            fscanf(bookingfPtr, "%s", bInfoPtr->airlines);
+            fscanf(bookingfPtr, "%s", bInfoPtr->depAirport);
+            fscanf(bookingfPtr, "%s", bInfoPtr->destAirport);
+            fscanf(bookingfPtr, "%f", &bInfoPtr->timeOfDep);
+            fscanf(bookingfPtr, "%f", &bInfoPtr->timeOfDest);
+        }
+        fclose(bookingfPtr);
+    }
+    
+    return generatedId;
+}
+
+void selectSeat(int flightCode, int passengerCapacity, char seatNumber[])
+{
+    Seat *seatInfoPtr, seatInfo;
+    seatInfoPtr = &seatInfo;
+
+    int *countPtr, counter = 0; //fseek yazarken hangi recorda gideceğimizi gösterecek
+    countPtr = &counter;
+    
+    FILE *seatfPtr;
+    if ((seatfPtr = fopen("seatInfo.dat","rb"))==NULL)
+    {
+        printf("%s","File could not be opened!\n");
+    }
+    else
+    {
+        fread(seatInfoPtr, sizeof(Seat), 1, seatfPtr);
+        
+        while(!feof(seatfPtr))
+        {
+            if (flightCode == seatInfoPtr->flightCode)
+            {
+                int i,j; //i satır j sütun için
+                printf("\t0\t1\t2\t3\t4\t5\n");
+                    
+                for(i=0; i < passengerCapacity/6; i++)
+                {   
+                    printf("%d\t", i);
+
+                    for(j=0; j < 6; j++)
+                    {   
+                        seatInfoPtr->seatTable[i][j] = '+';
+                        printf("%c\t", seatInfoPtr->seatTable[i][j]);
+                    }
+                    printf("\n");
+                }
+            }
+
+            *countPtr +=1;
+            fread(seatInfoPtr, sizeof(Seat), 1, seatfPtr);
+        }
+        fclose(seatfPtr);
+
+        printf("\n%s\n%s\n", "Please choose avaliable seat from above. At seat table '+' means that seat is available and '.' means that seat is not available.",
+        "If you want to choose one of available seats, please enter the row number and column number of that seat respectively.");
+
+        printf("%s\n", "Row number you want to choose:");
+        scanf("%d", &seatNumber[0]);
+        printf("%s\n", "Column number you want to choose:");
+        scanf("%d",&seatNumber[1]);
+
+        if(seatInfoPtr->seatTable[seatNumber[0]][seatNumber[1]] == '+')
+        {
+            seatInfoPtr->seatTable[seatNumber[0]][seatNumber[1]] == '.';
+            
+            if ((seatfPtr = fopen("seatInfo.dat","wb+"))==NULL)
+            {
+                printf("%s","File could not be opened!\n");
+            }
+            else
+            {
+                fseek(seatfPtr, counter*sizeof(Seat), SEEK_SET);
+                fwrite(seatInfoPtr, sizeof(Seat), 1, seatfPtr);
+                fclose(seatfPtr);
+            }
+        }
+    }
+}
+
+
 void listPassBooking()
 {
     char passName[NAME_LENGTH];    //It is used for receiving the name-surname of passenger
+    char passSurName[NAME_LENGTH]; //
     unsigned long long int passId; // It is used for receiving the ID of passenger
 
     //This section receives the name-surname and ID number of passenger for checking the booking records
-    printf("%s\n", "Welcome our list booking service. Please enter your name-surname");
+    printf("%s\n", "Welcome our list booking service. Please enter your name");
     scanf("%30s", passName);
+    printf("%s\n", "Please enter your surname");
+    scanf("%30s", passSurName);
     printf("%s\n", "Please enter your ID number");
     scanf("%11llu", &passId);
 
@@ -826,8 +1005,9 @@ void listPassBooking()
 
         // This fscanf line reads booking informations (except fligt informations) of passenger from the "Passenger Booking Info.txt" file
         fscanf(bookingfPtr, "%s", bInfoPtr->name);
+        fscanf(bookingfPtr, "%s", bInfoPtr->surname);
         fscanf(bookingfPtr, "%llu", &bInfoPtr->personalId);
-        fscanf(bookingfPtr, "%d", &bInfoPtr->seatNumber);
+        fscanf(bookingfPtr, "%d", bInfoPtr->seatNumber);
         fscanf(bookingfPtr, "%d", &bInfoPtr->bookingId);
         fscanf(bookingfPtr, "%d", &bInfoPtr->flightCode);
         fscanf(bookingfPtr, "%s", bInfoPtr->airlines);
@@ -847,9 +1027,9 @@ void listPassBooking()
         {
             /* If given name-ID are matched with previously scanned name-ID of booking record from "Passenger Booking Info.txt" file, then display 
             the scanned booking record */
-            if ((strcmp(passName, bInfoPtr->name) == 0) && (passId == bookingInfo.personalId))
+            if (((strcmp(strupr(passName), bInfoPtr->name) == 0) && (strcmp(strupr(passSurName), bInfoPtr->surname) == 0)) && (passId == bookingInfo.personalId))
             {
-                printf("%s %llu %d %d %d %s %s %s %.2f %.2f\n", bInfoPtr->name, bInfoPtr->personalId, bInfoPtr->seatNumber,
+                printf("%s %s %llu %d %d %d %s %s %s %.2f %.2f\n", bInfoPtr->name, bInfoPtr->surname, bInfoPtr->personalId, bInfoPtr->seatNumber,
                        bInfoPtr->bookingId, bInfoPtr->flightCode, bInfoPtr->airlines, bInfoPtr->depAirport, bInfoPtr->destAirport,
                        bInfoPtr->timeOfDep, bInfoPtr->timeOfDest);
 
@@ -859,8 +1039,9 @@ void listPassBooking()
             /* This section is used for if there is no match between given name-ID and previously scanned name-ID of booking record, then 
             reading another booking record from "Passenger Booking Info.txt" file. After that matching test repeats */
             fscanf(bookingfPtr, "%s", bInfoPtr->name);
+            fscanf(bookingfPtr, "%s", bInfoPtr->surname);
             fscanf(bookingfPtr, "%llu", &bInfoPtr->personalId);
-            fscanf(bookingfPtr, "%d", &bInfoPtr->seatNumber);
+            fscanf(bookingfPtr, "%d", bInfoPtr->seatNumber);
             fscanf(bookingfPtr, "%d", &bInfoPtr->bookingId);
             fscanf(bookingfPtr, "%d", &bInfoPtr->flightCode);
             fscanf(bookingfPtr, "%s", bInfoPtr->airlines);
@@ -879,6 +1060,7 @@ void listPassBooking()
         }
     }
 }
+
 
 void deletePassBooking()
 {
@@ -914,8 +1096,9 @@ void deletePassBooking()
 
             // This fscanf line reads booking informations (except fligt informations) of passenger from the "Passenger Booking Info.txt" file
             fscanf(bookingfPtr, "%s", bInfoPtr->name);
+            fscanf(bookingfPtr, "%s", bInfoPtr->surname);
             fscanf(bookingfPtr, "%llu", &bInfoPtr->personalId);
-            fscanf(bookingfPtr, "%d", &bInfoPtr->seatNumber);
+            fscanf(bookingfPtr, "%d", bInfoPtr->seatNumber);
             fscanf(bookingfPtr, "%d", &bInfoPtr->bookingId);
             fscanf(bookingfPtr, "%d", &bInfoPtr->flightCode);
             fscanf(bookingfPtr, "%s", bInfoPtr->airlines);
@@ -933,9 +1116,9 @@ void deletePassBooking()
             the scanned booking record */
                 if (bookingId != bookingInfo.bookingId)
                 {
-                    fprintf(tbookingfPtr, "%s %llu %d %d %d %s %s %s %.2f %.2f\n", bInfoPtr->name, bInfoPtr->personalId, bInfoPtr->seatNumber,
-                            bInfoPtr->bookingId, bInfoPtr->flightCode, bInfoPtr->airlines, bInfoPtr->depAirport, bInfoPtr->destAirport,
-                            bInfoPtr->timeOfDep, bInfoPtr->timeOfDest);
+                    fprintf(tbookingfPtr, "%s %s %llu %d %d %d %s %s %s %.2f %.2f\n", bInfoPtr->name, bInfoPtr->surname, bInfoPtr->personalId, 
+                    bInfoPtr->seatNumber, bInfoPtr->bookingId, bInfoPtr->flightCode, bInfoPtr->airlines, bInfoPtr->depAirport, 
+                    bInfoPtr->destAirport, bInfoPtr->timeOfDep, bInfoPtr->timeOfDest);
                 }
 
                 if (bookingId == bookingInfo.bookingId)
@@ -946,8 +1129,9 @@ void deletePassBooking()
                 /* This section is used for if there is no match between given name-ID and previously scanned name-ID of booking record, then 
                 reading another booking record from "Passenger Booking Info.txt" file. After that matching test repeats */
                 fscanf(bookingfPtr, "%s", bInfoPtr->name);
+                fscanf(bookingfPtr, "%s", bInfoPtr->surname);
                 fscanf(bookingfPtr, "%llu", &bInfoPtr->personalId);
-                fscanf(bookingfPtr, "%d", &bInfoPtr->seatNumber);
+                fscanf(bookingfPtr, "%d", bInfoPtr->seatNumber);
                 fscanf(bookingfPtr, "%d", &bInfoPtr->bookingId);
                 fscanf(bookingfPtr, "%d", &bInfoPtr->flightCode);
                 fscanf(bookingfPtr, "%s", bInfoPtr->airlines);
