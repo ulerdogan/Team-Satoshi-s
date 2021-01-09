@@ -81,7 +81,7 @@ typedef struct _Seat
 {
     
     int flightCode; // between 1111 - 9999
-    char seatTable[SEAT_ROW][6]; //seatTable is an matrix array for representing seat order of planes 
+    char seatTable[SEAT_ROW][6]; //seatTable is a matrix array for representing seat order of planes 
 
 } Seat;
 
