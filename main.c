@@ -847,7 +847,7 @@ void bookPassFlight()
                 FILE *bookingfPtr; //File pointer of "bookings.txt". This file will hold booking records of each passenger.
 
                 //If file could not be opened for any reason, an error will be prompted to the screen
-                if ((bookingfPtr = fopen("bookings.txt", "a+")) == NULL)
+                if ((bookingfPtr = fopen("bookings.txt", "a")) == NULL)
                 {
                     printf("\n%s", "!!!!! An error occurred!");
                 }
@@ -946,7 +946,8 @@ int selectSeat(int flightCode, int passengerCapacity)
 
     int *countPtr, counter = 0; //fseek yazarken hangi recorda gideceğimizi gösterecek
     countPtr = &counter;
-
+    int rowPref;
+    int columnPref;
     FILE *seatfPtr;
     if ((seatfPtr = fopen("seatInfo.dat", "rb+")) == NULL)
     {
@@ -973,43 +974,43 @@ int selectSeat(int flightCode, int passengerCapacity)
                     }
                     printf("\n");
                 }
+
+                fseek(seatfPtr, 0, SEEK_SET);
+                printf("\n%s\n%s\n", "Please choose avaliable seat from above. At seat table '+' means that seat is available and '.' means that seat is not available.",
+                       "If you want to choose one of available seats, please enter the row number and column number of that seat respectively.");
+
+                printf("%s\n", "Row number you want to choose:");
+                scanf("%d", &rowPref);
+                printf("%s\n", "Column number you want to choose:");
+                scanf("%d", &columnPref);
+
+                while(seatInfoPtr->seatTable[rowPref][columnPref] == '.')
+                {
+                    printf("%s\n", "You entered the number of not available seat. Please choose seats that have '+' mark!");
+                    printf("%s\n", "Row number you want to choose:");
+                    scanf("%d", &rowPref);
+                    printf("%s\n", "Column number you want to choose:");
+                    scanf("%d", &columnPref);
+                }
+
+                if (seatInfoPtr->seatTable[rowPref][columnPref] == '+')
+                {
+                    seatInfoPtr->seatTable[rowPref][columnPref] = '.';
+                }
+
+                fseek(seatfPtr, counter*sizeof(Seat), SEEK_SET);
+                fwrite(seatInfoPtr, sizeof(Seat), 1, seatfPtr);
             }
             else
             {
                 *countPtr += 1;
             }
             fread(seatInfoPtr, sizeof(Seat), 1, seatfPtr);
-        }   
-        
-        printf("\n%s\n%s\n", "Please choose avaliable seat from above. At seat table '+' means that seat is available and '.' means that seat is not available.",
-               "If you want to choose one of available seats, please enter the row number and column number of that seat respectively.");
-        int rowPref;
-        int columnPref;
-        printf("%s\n", "Row number you want to choose:");
-        scanf("%d", &rowPref);
-        printf("%s\n", "Column number you want to choose:");
-        scanf("%d", &columnPref);
-
-        while(seatInfoPtr->seatTable[rowPref][columnPref] == '.')
-        {
-            printf("%s\n", "You entered the number of not available seat. Please choose seats that have '+' mark!");
-            printf("%s\n", "Row number you want to choose:");
-            scanf("%d", &rowPref);
-            printf("%s\n", "Column number you want to choose:");
-            scanf("%d", &columnPref);
-        }
-
-        if (seatInfoPtr->seatTable[rowPref][columnPref] == '+')
-        {
-            seatInfoPtr->seatTable[rowPref][columnPref] = '.';
-        }
             
-        fseek(seatfPtr, counter*sizeof(Seat), SEEK_SET);
-        fwrite(seatInfoPtr, sizeof(Seat), 1, seatfPtr);
-        fclose(seatfPtr);
-
-        return 10*rowPref+columnPref;
+        }
+        fclose(seatfPtr);  
     }
+    return 10*rowPref+columnPref;
 }
 
 //Function to list all bookings of a passenger
