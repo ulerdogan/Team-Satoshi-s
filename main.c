@@ -34,7 +34,7 @@ int showAdminMenu();
 int adminLogin();
 // generating flight codes for the flights
 int generateFlightCode();
-//
+//Function to create seat database of each flight
 void seatOrder(int flightCode, int passengerCapacity);
 // function that records flights to file database
 void addFlight();
@@ -45,12 +45,12 @@ void deleteFlight();
 // function that edits the chosen flight
 void editFlight();
 // function that list bookings
-void listBookings();
+int listBookings();
 //Function that lists available flights to passenger
-void listPassFlight();
+int listPassFlight();
 //Function that generates unique booking ID
 int bookingIdGenerator();
-//
+//With this function, passenger can select an available seat for him/her. Database of seat records are updated according to passengers' choice
 int selectSeat(int flightCode, int passengerCapacity);
 //Function that creates booking record for passenger
 void bookPassFlight();
@@ -76,12 +76,12 @@ typedef struct _Flight
     int passengerCapacity;             // passenger capacities of the planes
 } Flight;
 
-//
+//a structure that used for holding seat informations of any particular fligt
 typedef struct _Seat
 {
-    // "flight code, airlines, departure airport, destination airport, time of departure, time of destination and passenger capacity" records
+    
     int flightCode; // between 1111 - 9999
-    char seatTable[SEAT_ROW][6];
+    char seatTable[SEAT_ROW][6]; //seatTable is an matrix array for representing seat order of planes 
 
 } Seat;
 
@@ -382,36 +382,40 @@ int generateFlightCode()
     return ++firstFlightCode;
 }
 
-void seatOrder(int flightCode, int passengerCapacity)
+//Function to create seat database of each flight
+void seatOrder(int flightCode, int passengerCapacity) //Function gets flight code and passenger capacity of particular flight as parameters
 {
-    int rowConstant = passengerCapacity / 6;
-    int i, j; //i satır j sütun için
-    Seat *seatInfoPtr, seatInfo;
-    seatInfoPtr = &seatInfo;
+    int rowConstant = passengerCapacity / 6; //Variable for expressing the seat row numbers of the plane
+    int i, j; //Subscript variables of seatTable array
+    Seat *seatInfoPtr, seatInfo; //Struct variable which stores flightcode and seat informations of particular flight in its members
+    seatInfoPtr = &seatInfo; //Pointer for seatInfo
 
-    seatInfoPtr->flightCode = flightCode;
-    seatInfoPtr->seatTable[rowConstant][6];
+    seatInfoPtr->flightCode = flightCode; //Value of flightCode is assigned to seatInfoPtr->flightCode member
+    seatInfoPtr->seatTable[rowConstant][6]; //seatInfoPtr->seatTable[][] member holds seat information of plane as a table 
 
+    //In for loop elements of seatInfoPtr->seatTable[][] member is initialized to '+'.  '+' symbol means "available seat" 
     for (i = 0; i < rowConstant; i++)
     {
         for (j = 0; j <= 5; j++)
         {
-            seatInfoPtr->seatTable[i][j] = '+';
+            seatInfoPtr->seatTable[i][j] = '+'; //Array elements are initialized to '+' row by row
         }
     }
 
-    FILE *seatfPtr;
+    FILE *seatfPtr; //File pointer of "seatInfo.dat" binary file. This file stores seatInfo records
 
+    //If file could not be opened for any reason, an error will be prompted to the screen
     if ((seatfPtr = fopen("seatInfo.dat", "ab")) == NULL)
     {
         printf("%s", "File could not be opened!\n");
     }
     else
     {
+        //Struct variable seatInfo is written to the "seatInfo.dat" binary file
         fwrite(seatInfoPtr, sizeof(Seat), 1, seatfPtr);
-        fclose(seatfPtr);
+        fclose(seatfPtr); //Closing "seatInfo.dat"
     }
-}
+}//End function
 
 // a function to add flights by adminstrator to file database
 void addFlight()
@@ -705,7 +709,7 @@ void editFlight()
 }
 
 //Function gets airport informations from passenger and compare them with flight records from "flights.txt" file; lists available flights to passenger
-void listPassFlight()
+int listPassFlight()
 {
     design(); //designing
 
@@ -939,78 +943,92 @@ int bookingIdGenerator()
     return generatedId; //generatedId is returned as a value of function
 } //End function
 
+//With this function, passenger can select an available seat for him/her. Database of seat records are updated according to passengers' choice
 int selectSeat(int flightCode, int passengerCapacity)
 {
-    Seat *seatInfoPtr, seatInfo;
-    seatInfoPtr = &seatInfo;
+    Seat *seatInfoPtr, seatInfo; //Struct variable which stores flightcode and seat informations of particular flight in its members
+    seatInfoPtr = &seatInfo; //Pointer of seatInfo
 
-    int *countPtr, counter = 0; //fseek yazarken hangi recorda gideceğimizi gösterecek
-    countPtr = &counter;
-    int rowPref;
-    int columnPref;
-    FILE *seatfPtr;
+    int *countPtr, counter = 0; //Counter variable. It will be used for writing seat preference data to specific location of "seatInfo.dat" database
+    countPtr = &counter; //Pointer of counter
+    int rowPref; //Variable to receive passenger's preferred seat row information
+    int columnPref; //Variable to receive passenger's preferred seat column information
+
+    FILE *seatfPtr; //File pointer for "seatInfo.dat" database
+
+    //If file could not be opened for any reason, an error will be prompted to the screen
     if ((seatfPtr = fopen("seatInfo.dat", "rb+")) == NULL)
     {
         printf("%s", "File could not be opened!\n");
     }
     else
-    {
-        fread(seatInfoPtr, sizeof(Seat), 1, seatfPtr);
-
+    {   
+        /*While statement scans the "seatInfo.dat" database to check if there is match between flight codes are which is received from 
+        passenger and scanned from "seatInfo.dat" database records. If there is a match, seat selection screen will be displayed*/
         while (!feof(seatfPtr))
         {
+            fread(seatInfoPtr, sizeof(Seat), 1, seatfPtr);//Reading first record from "seatInfo.dat" database
+
             if (flightCode == seatInfoPtr->flightCode)
             {
-                int i, j; //i satır j sütun için
-                printf("\t0\t1\t2\t3\t4\t5\n");
-
-                for (i = 0; i < passengerCapacity / 6; i++)
-                {
-                    printf("%d\t", i);
-
-                    for (j = 0; j < 6; j++)
-                    {
-                        printf("%c\t", seatInfoPtr->seatTable[i][j]);
-                    }
-                    printf("\n");
-                }
-
-                fseek(seatfPtr, 0, SEEK_SET);
-                printf("\n%s\n%s\n", "Please choose avaliable seat from above. At seat table '+' means that seat is available and '.' means that seat is not available.",
-                       "If you want to choose one of available seats, please enter the row number and column number of that seat respectively.");
-
-                printf("%s\n", "Row number you want to choose:");
-                scanf("%d", &rowPref);
-                printf("%s\n", "Column number you want to choose:");
-                scanf("%d", &columnPref);
-
-                while(seatInfoPtr->seatTable[rowPref][columnPref] == '.')
-                {
-                    printf("%s\n", "You entered the number of not available seat. Please choose seats that have '+' mark!");
-                    printf("%s\n", "Row number you want to choose:");
-                    scanf("%d", &rowPref);
-                    printf("%s\n", "Column number you want to choose:");
-                    scanf("%d", &columnPref);
-                }
-
-                if (seatInfoPtr->seatTable[rowPref][columnPref] == '+')
-                {
-                    seatInfoPtr->seatTable[rowPref][columnPref] = '.';
-                }
-
-                fseek(seatfPtr, counter*sizeof(Seat), SEEK_SET);
-                fwrite(seatInfoPtr, sizeof(Seat), 1, seatfPtr);
+                break; //If there is a match, then it is not necessary to scan another records anymore
             }
             else
             {
-                *countPtr += 1;
+                *countPtr += 1; //If there is not match, counter variable is incremented by one and scanning process is repeated
             }
-            fread(seatInfoPtr, sizeof(Seat), 1, seatfPtr);
-            
         }
-        fclose(seatfPtr);  
+
+        //This section is applied according to the flightcode match
+
+        int i, j; //Subscript variables for seatInfoPtr->seatTable[][] member
+        printf("\t0\t1\t2\t3\t4\t5\n"); //Column headers for seat table
+
+        //Nested for loops prints the seat table
+        for (i = 0; i < passengerCapacity / 6; i++)
+        {
+            printf("%d\t", i); //Row headers for seat table
+
+            for (j = 0; j < 6; j++)
+            {
+                printf("%c\t", seatInfoPtr->seatTable[i][j]);
+            }
+            printf("\n");
+        }
+
+        fseek(seatfPtr, 0, SEEK_SET); // The position of the file pointer is set to the beginning of the file
+        
+        //Printf line informs the passenger about seat selecting process
+        printf("\n%s\n%s\n\n", "Please choose avaliable seat from above. At seat table '+' means that seat is available and '.' means that seat is not available.",
+                "If you want to choose one of available seats, please enter the row number and column number of that seat respectively.");
+
+        printf("%s", "Row number you want to choose:"); 
+        scanf("%d", &rowPref); //Getting seat row preference from passenger
+        printf("%s", "Column number you want to choose:");
+        scanf("%d", &columnPref); //Getting seat column preference from passenger
+
+        //If passenger selects not available seat, he/she is forced to select another available seat
+        while(seatInfoPtr->seatTable[rowPref][columnPref] == '.')
+        {
+            printf("%s\n", "You entered the number of not available seat. Please choose seats that have '+' mark!");
+            printf("%s\n", "Row number you want to choose:");
+            scanf("%d", &rowPref);
+            printf("%s\n", "Column number you want to choose:");
+            scanf("%d", &columnPref);
+        }
+
+        //If passenger selects available seat, that seat is stamped as not free
+        if (seatInfoPtr->seatTable[rowPref][columnPref] == '+')
+        {
+            seatInfoPtr->seatTable[rowPref][columnPref] = '.';
+        }
+        
+        //Changed seat table is overwritten to "seatInfo.dat" database in its location for updating the database
+        fseek(seatfPtr, counter*sizeof(Seat), SEEK_SET);
+        fwrite(seatInfoPtr, sizeof(Seat), 1, seatfPtr);
+        fclose(seatfPtr); //Closing "seatInfo.dat"
     }
-    return 10*rowPref+columnPref;
+    return 10*rowPref+columnPref; //Seat number information is returned for saving it in "booking.txt" file 
 }
 
 //Function to list all bookings of a passenger
@@ -1202,7 +1220,7 @@ int showPassMenu()
     printf("1. Book a Flight\n");
     printf("2. List my Flights\n");
     printf("3. Cancel my flight\n");
-    printf("0. Exit from the program\n");
+    printf("0. Return main menu \n");
     printf("\nPlease make your login option: ");
     scanf("%d", &choice); // Getting passenger's choice
 
@@ -1221,18 +1239,19 @@ int showPassMenu()
         deletePassBooking();
         break;
 
-    case 0: //If passenger wants to exit from program, this case is applied
-        printf("\nThe program has successfully closed.\nSEE YOU LATER!\n");
+    case 0: //If passenger wants to return to the main menu, this case is applied
+        showMainMenu();
         break;
 
     default: //Default option for false inputs
         printf("\n%s", "!!!!! An error occurred");
         break;
     }
+    return 0;
 }
 
 // a function to list current bookings
-void listBookings()
+int listBookings()
 {
     design(); // designing
 
