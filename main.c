@@ -853,7 +853,7 @@ void bookPassFlight()
                 //If file could not be opened for any reason, an error will be prompted to the screen
                 if ((bookingfPtr = fopen("bookings.txt", "a")) == NULL)
                 {
-                    printf("\n%s", "!!!!! An error occurred!");
+                    printf("%s", "!!!!! An error occurred!");
                 }
                 else
                 {
@@ -1248,7 +1248,7 @@ int showPassMenu()
         break;
     }
     return 0;
-}
+}//End function
 
 // a function to list current bookings
 int listBookings()
@@ -1321,4 +1321,4 @@ int listBookings()
         //show that there are records
         return 1;
     }
-}
+}//End function
