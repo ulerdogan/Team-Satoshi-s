@@ -338,10 +338,10 @@ int adminLogin()
     }
 }
 
-// generating flight codes for the flights
+// generating flight codes for the flights: this function increment the last flight code by 1
 int generateFlightCode()
 {
-    int firstFlightCode = 1111;
+    int firstFlightCode = 1110;
 
     Flight controlFlight; // a control struct to the file database
     Flight *cfPtr;        // pointer for control flight struct
@@ -351,8 +351,17 @@ int generateFlightCode()
 
     flPtr = fopen("flights.txt", "r"); // open the file
 
+    // read the first line of the file database
+    fscanf(flPtr, "%d", &cfPtr->flightCode);
+    fscanf(flPtr, "%s", cfPtr->airlines);
+    fscanf(flPtr, "%s", cfPtr->depAirport);
+    fscanf(flPtr, "%s", cfPtr->destAirport);
+    fscanf(flPtr, "%f", &cfPtr->timeOfDep);
+    fscanf(flPtr, "%f", &cfPtr->timeOfDest);
+    fscanf(flPtr, "%d", &cfPtr->passengerCapacity);
+
     // read the file database until the end of the file
-    // on each line of the file database, the flight codes will be incremented by 1
+    // control the lines and find the last flight code on the database
     while (!feof(flPtr))
     {
         fscanf(flPtr, "%d", &cfPtr->flightCode);

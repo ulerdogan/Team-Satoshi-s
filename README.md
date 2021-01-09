@@ -17,6 +17,7 @@ The application will assign a booking id for the booked flight and will display 
 The list bookings menu will ask for passenger name and id number and will display all the bookings for that particular passenger with their ids and flight information as above.
 ***
 ### How can i run it?
+The codes have been written in VS Code and compiled by GCC with MinGW.
 The **main.c** file is the source code of the program. You can compile it on your own computer or you can run **main.exe** on Windows computers.
 **password.txt** file is the file database to record adminstrator password to reach adminstrator panel. You can use pre-setted password *1773* or delete this file and create this file database at the beginning of the program.
 **flights.txt** file is the file database to record flights. You can delete this file and create in the program by adding flights or use the one that we add.
