@@ -466,7 +466,7 @@ void addFlight()
     // open the file, handle the inputted information and close (recording all string as uppercase to preventing unmatches about casing)
     flPtr = fopen("flights.txt", "a");
     fprintf(flPtr, "%d %s %s %s %.2f %.2f %d\n", nfPtr->flightCode, strupr(nfPtr->airlines), strupr(nfPtr->depAirport), strupr(nfPtr->destAirport), nfPtr->timeOfDep, nfPtr->timeOfDest, nfPtr->passengerCapacity);
-    printf("\n The flight has recorded succesfully...\n");
+    printf("\nThe flight has recorded succesfully...\n");
     fclose(flPtr);
 
     //
@@ -863,6 +863,8 @@ void bookPassFlight()
                 //Personal ID number of passenger is requested
                 printf("\n%s", "Please enter your ID number: ");
                 scanf("%11llu", &bInfoPtr->personalId);
+
+                printf("\n"); // add empty line to have better look 
 
                 bInfoPtr->seatNumber = selectSeat(bInfoPtr->flightCode, bInfoPtr->passengerCapacity);
 
