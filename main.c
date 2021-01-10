@@ -165,7 +165,7 @@ void createPassword()
     //if there are not a password record, create password and provide sign up; else verify the old password and change it
     if (tpwPtr == NULL)
     {
-        
+
         design(); // designing
         printf("Please enter your new password (less than 20 characters): ");
         scanf("%s", password);
@@ -455,6 +455,14 @@ void addFlight()
     printf("\nPlease enter the capacity of the plane: ");
     scanf("%d", &nfPtr->passengerCapacity);
 
+    // provide the capacity of the planes match to 6 columned seat set and max plane capacity
+    while (nfPtr->passengerCapacity % 6 != 0 || nfPtr->passengerCapacity > SEAT_ROW*6)
+    {
+        printf("\nYou have entered a false capacity.\n");
+        printf("\nPlease enter the capacity of the plane: ");
+        scanf("%d", &nfPtr->passengerCapacity);
+    }
+
     // open the file, handle the inputted information and close (recording all string as uppercase to preventing unmatches about casing)
     flPtr = fopen("flights.txt", "a");
     fprintf(flPtr, "%d %s %s %s %.2f %.2f %d\n", nfPtr->flightCode, strupr(nfPtr->airlines), strupr(nfPtr->depAirport), strupr(nfPtr->destAirport), nfPtr->timeOfDep, nfPtr->timeOfDest, nfPtr->passengerCapacity);
@@ -723,7 +731,7 @@ int listPassFlight()
     //If file could not be opened for any reason, an error will be prompted to the screen
     if ((fPtr = fopen("flights.txt", "r")) == NULL)
     {
-        printf("%s", "Our service is temporarily unavailable. Please try again later!");
+        printf("%s\n", "Our service is temporarily unavailable. Please try again later!");
     }
     else
     {
@@ -870,7 +878,7 @@ void bookPassFlight()
                         strupr(bInfoPtr->depAirport), strupr(bInfoPtr->destAirport), bInfoPtr->timeOfDep, bInfoPtr->timeOfDest);
 
                 fclose(bookingfPtr); //Closing "bookings.txt"
-                
+
                 system("cls"); // clear previous screens
 
                 //Sharing booking ID with passenger
